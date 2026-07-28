@@ -1,0 +1,45 @@
+# Third-party source corpora.
+# Not vendored: exact versions are pinned in dataset/sources.csv
+sources/*
+!sources/.gitkeep
+
+# Working notes
+notes/
+
+# Secrets / credentials
+.env
+.env.*
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+*.egg-info/
+
+# Java
+*.class
+*.jar
+target/
+build/
+
+# .NET
+bin/
+obj/
+*.user
+
+# SAST tool working data.
+# NOTE: raw SARIF/JSON results under runs/ ARE tracked; these are the
+# large intermediate artefacts only.
+codeql-databases/
+*.codeql-db/
+.scannerwork/
+.sonar/
+.semgrep/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+*.swp
