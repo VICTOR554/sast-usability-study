@@ -1,0 +1,117 @@
+{
+    "total": 2,
+    "p": 1,
+    "ps": 500,
+    "paging": {
+        "pageIndex": 1,
+        "pageSize": 500,
+        "total": 2
+    },
+    "effortTotal": 15,
+    "issues": [
+        {
+            "key": "102193a2-6c75-4a5e-9966-1101dea6b20b",
+            "rule": "csharpsquid:S3903",
+            "severity": "MAJOR",
+            "component": "toolcheck-csharp:PathTraversalExample.cs",
+            "project": "toolcheck-csharp",
+            "line": 4,
+            "hash": "98cc7104cf76fa68b61643f938cbc9d6",
+            "textRange": {
+                "startLine": 4,
+                "endLine": 4,
+                "startOffset": 6,
+                "endOffset": 26
+            },
+            "flows": [],
+            "status": "OPEN",
+            "message": "Move 'PathTraversalExample' into a named namespace.",
+            "effort": "5min",
+            "debt": "5min",
+            "author": "",
+            "tags": [],
+            "creationDate": "2026-07-29T12:02:44+0000",
+            "updateDate": "2026-07-29T12:02:44+0000",
+            "type": "BUG",
+            "scope": "MAIN",
+            "quickFixAvailable": false,
+            "messageFormattings": [],
+            "codeVariants": [],
+            "cleanCodeAttribute": "MODULAR",
+            "cleanCodeAttributeCategory": "ADAPTABLE",
+            "impacts": [
+                {
+                    "softwareQuality": "RELIABILITY",
+                    "severity": "MEDIUM"
+                }
+            ],
+            "issueStatus": "OPEN",
+            "prioritizedRule": false,
+            "fromSonarQubeUpdate": false,
+            "internalTags": [],
+            "linkedTicketStatus": "NOT_LINKED"
+        },
+        {
+            "key": "93db83ba-3109-4070-ab7a-aeeae9f8b236",
+            "rule": "csharpsquid:S1118",
+            "severity": "MAJOR",
+            "component": "toolcheck-csharp:PathTraversalExample.cs",
+            "project": "toolcheck-csharp",
+            "line": 4,
+            "hash": "98cc7104cf76fa68b61643f938cbc9d6",
+            "textRange": {
+                "startLine": 4,
+                "endLine": 4,
+                "startOffset": 6,
+                "endOffset": 26
+            },
+            "flows": [],
+            "status": "OPEN",
+            "message": "Add a 'protected' constructor or the 'static' keyword to the class declaration.",
+            "effort": "10min",
+            "debt": "10min",
+            "author": "",
+            "tags": [
+                "design"
+            ],
+            "creationDate": "2026-07-29T12:02:44+0000",
+            "updateDate": "2026-07-29T12:02:44+0000",
+            "type": "CODE_SMELL",
+            "scope": "MAIN",
+            "quickFixAvailable": false,
+            "messageFormattings": [],
+            "codeVariants": [],
+            "cleanCodeAttribute": "CLEAR",
+            "cleanCodeAttributeCategory": "INTENTIONAL",
+            "impacts": [
+                {
+                    "softwareQuality": "MAINTAINABILITY",
+                    "severity": "MEDIUM"
+                }
+            ],
+            "issueStatus": "OPEN",
+            "prioritizedRule": false,
+            "fromSonarQubeUpdate": false,
+            "internalTags": [],
+            "linkedTicketStatus": "NOT_LINKED"
+        }
+    ],
+    "components": [
+        {
+            "key": "toolcheck-csharp:PathTraversalExample.cs",
+            "enabled": true,
+            "qualifier": "FIL",
+            "name": "PathTraversalExample.cs",
+            "longName": "PathTraversalExample.cs",
+            "path": "PathTraversalExample.cs"
+        },
+        {
+            "key": "toolcheck-csharp",
+            "enabled": true,
+            "qualifier": "TRK",
+            "name": "toolcheck-csharp",
+            "longName": "toolcheck-csharp"
+        }
+    ],
+    "facets": []
+}

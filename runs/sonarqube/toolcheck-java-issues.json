@@ -1,0 +1,322 @@
+{
+    "total": 6,
+    "p": 1,
+    "ps": 500,
+    "paging": {
+        "pageIndex": 1,
+        "pageSize": 500,
+        "total": 6
+    },
+    "effortTotal": 95,
+    "issues": [
+        {
+            "key": "2c1de1a9-fbd7-4b23-9331-69b19fd81e9b",
+            "rule": "java:S1220",
+            "severity": "MINOR",
+            "component": "toolcheck-java:tool-verification/java/SqlInjectionExample.java",
+            "project": "toolcheck-java",
+            "flows": [],
+            "status": "OPEN",
+            "message": "Move this file to a named package.",
+            "effort": "10min",
+            "debt": "10min",
+            "author": "32734670+victor554@users.noreply.github.com",
+            "tags": [
+                "convention"
+            ],
+            "creationDate": "2026-07-29T00:51:36+0000",
+            "updateDate": "2026-07-29T12:02:06+0000",
+            "type": "CODE_SMELL",
+            "scope": "MAIN",
+            "quickFixAvailable": false,
+            "messageFormattings": [],
+            "codeVariants": [],
+            "cleanCodeAttribute": "MODULAR",
+            "cleanCodeAttributeCategory": "ADAPTABLE",
+            "impacts": [
+                {
+                    "softwareQuality": "MAINTAINABILITY",
+                    "severity": "LOW"
+                }
+            ],
+            "issueStatus": "OPEN",
+            "prioritizedRule": false,
+            "fromSonarQubeUpdate": false,
+            "internalTags": [],
+            "linkedTicketStatus": "NOT_LINKED"
+        },
+        {
+            "key": "03fb26fc-0bbc-4660-b311-c88ffc42e799",
+            "rule": "java:S2115",
+            "severity": "BLOCKER",
+            "component": "toolcheck-java:tool-verification/java/SqlInjectionExample.java",
+            "project": "toolcheck-java",
+            "line": 11,
+            "hash": "77b316c2f6666f05076b16f0df612c1d",
+            "textRange": {
+                "startLine": 11,
+                "endLine": 12,
+                "startOffset": 26,
+                "endOffset": 60
+            },
+            "flows": [],
+            "status": "OPEN",
+            "message": "Add password protection to this database.",
+            "effort": "45min",
+            "debt": "45min",
+            "author": "32734670+victor554@users.noreply.github.com",
+            "tags": [
+                "cwe"
+            ],
+            "creationDate": "2026-07-29T00:51:36+0000",
+            "updateDate": "2026-07-29T12:02:06+0000",
+            "type": "VULNERABILITY",
+            "scope": "MAIN",
+            "quickFixAvailable": false,
+            "messageFormattings": [],
+            "codeVariants": [],
+            "cleanCodeAttribute": "TRUSTWORTHY",
+            "cleanCodeAttributeCategory": "RESPONSIBLE",
+            "impacts": [
+                {
+                    "softwareQuality": "SECURITY",
+                    "severity": "BLOCKER"
+                }
+            ],
+            "issueStatus": "OPEN",
+            "prioritizedRule": false,
+            "fromSonarQubeUpdate": false,
+            "internalTags": [],
+            "linkedTicketStatus": "NOT_LINKED"
+        },
+        {
+            "key": "bd510abb-1ae0-4359-bd8f-f75d2d345297",
+            "rule": "java:S2095",
+            "severity": "BLOCKER",
+            "component": "toolcheck-java:tool-verification/java/SqlInjectionExample.java",
+            "project": "toolcheck-java",
+            "line": 11,
+            "hash": "77b316c2f6666f05076b16f0df612c1d",
+            "textRange": {
+                "startLine": 11,
+                "endLine": 12,
+                "startOffset": 26,
+                "endOffset": 60
+            },
+            "flows": [],
+            "status": "OPEN",
+            "message": "Use try-with-resources or close this \"Connection\" in a \"finally\" clause.",
+            "effort": "5min",
+            "debt": "5min",
+            "author": "32734670+victor554@users.noreply.github.com",
+            "tags": [
+                "cwe",
+                "symbolic-execution",
+                "leak",
+                "denial-of-service",
+                "cert"
+            ],
+            "creationDate": "2026-07-29T00:51:36+0000",
+            "updateDate": "2026-07-29T12:02:06+0000",
+            "type": "BUG",
+            "scope": "MAIN",
+            "quickFixAvailable": false,
+            "messageFormattings": [],
+            "codeVariants": [],
+            "cleanCodeAttribute": "COMPLETE",
+            "cleanCodeAttributeCategory": "INTENTIONAL",
+            "impacts": [
+                {
+                    "softwareQuality": "RELIABILITY",
+                    "severity": "BLOCKER"
+                }
+            ],
+            "issueStatus": "OPEN",
+            "prioritizedRule": false,
+            "fromSonarQubeUpdate": false,
+            "internalTags": [],
+            "linkedTicketStatus": "NOT_LINKED"
+        },
+        {
+            "key": "038d6b29-9be3-4605-8b9c-ed1dda13c4af",
+            "rule": "java:S2095",
+            "severity": "BLOCKER",
+            "component": "toolcheck-java:tool-verification/java/SqlInjectionExample.java",
+            "project": "toolcheck-java",
+            "line": 13,
+            "hash": "3ddc3ac1a4ff37c5d8477572088807a9",
+            "textRange": {
+                "startLine": 13,
+                "endLine": 13,
+                "startOffset": 25,
+                "endOffset": 47
+            },
+            "flows": [],
+            "status": "OPEN",
+            "message": "Use try-with-resources or close this \"Statement\" in a \"finally\" clause.",
+            "effort": "5min",
+            "debt": "5min",
+            "author": "32734670+victor554@users.noreply.github.com",
+            "tags": [
+                "cwe",
+                "symbolic-execution",
+                "leak",
+                "denial-of-service",
+                "cert"
+            ],
+            "creationDate": "2026-07-29T00:51:36+0000",
+            "updateDate": "2026-07-29T12:02:06+0000",
+            "type": "BUG",
+            "scope": "MAIN",
+            "quickFixAvailable": false,
+            "messageFormattings": [],
+            "codeVariants": [],
+            "cleanCodeAttribute": "COMPLETE",
+            "cleanCodeAttributeCategory": "INTENTIONAL",
+            "impacts": [
+                {
+                    "softwareQuality": "RELIABILITY",
+                    "severity": "BLOCKER"
+                }
+            ],
+            "issueStatus": "OPEN",
+            "prioritizedRule": false,
+            "fromSonarQubeUpdate": false,
+            "internalTags": [],
+            "linkedTicketStatus": "NOT_LINKED"
+        },
+        {
+            "key": "d5a06e8e-ab2c-4710-9908-003f12ef1a8c",
+            "rule": "java:S2077",
+            "severity": "MAJOR",
+            "component": "toolcheck-java:tool-verification/java/SqlInjectionExample.java",
+            "project": "toolcheck-java",
+            "line": 17,
+            "hash": "47c5a9601b57c3fc86887a67349a4a89",
+            "textRange": {
+                "startLine": 17,
+                "endLine": 17,
+                "startOffset": 41,
+                "endOffset": 46
+            },
+            "flows": [
+                {
+                    "locations": [
+                        {
+                            "component": "toolcheck-java:tool-verification/java/SqlInjectionExample.java",
+                            "textRange": {
+                                "startLine": 16,
+                                "endLine": 16,
+                                "startOffset": 23,
+                                "endOffset": 75
+                            },
+                            "msg": "SQL Query is dynamically formatted and assigned to 'query'",
+                            "msgFormattings": []
+                        }
+                    ]
+                }
+            ],
+            "status": "OPEN",
+            "message": "Make sure using a dynamically formatted SQL query is safe here.",
+            "effort": "20min",
+            "debt": "20min",
+            "author": "32734670+victor554@users.noreply.github.com",
+            "tags": [
+                "cwe",
+                "spring",
+                "bad-practice",
+                "cert",
+                "hibernate",
+                "former-hotspot",
+                "sql"
+            ],
+            "creationDate": "2026-07-29T00:51:36+0000",
+            "updateDate": "2026-07-29T12:02:06+0000",
+            "type": "VULNERABILITY",
+            "scope": "MAIN",
+            "quickFixAvailable": false,
+            "messageFormattings": [],
+            "codeVariants": [],
+            "cleanCodeAttribute": "COMPLETE",
+            "cleanCodeAttributeCategory": "INTENTIONAL",
+            "impacts": [
+                {
+                    "softwareQuality": "SECURITY",
+                    "severity": "MEDIUM"
+                },
+                {
+                    "softwareQuality": "MAINTAINABILITY",
+                    "severity": "LOW"
+                }
+            ],
+            "issueStatus": "OPEN",
+            "prioritizedRule": false,
+            "fromSonarQubeUpdate": false,
+            "internalTags": [],
+            "linkedTicketStatus": "NOT_LINKED"
+        },
+        {
+            "key": "d8c5c17d-a2f1-4014-948b-10aa6ff0b5ad",
+            "rule": "java:S106",
+            "severity": "MAJOR",
+            "component": "toolcheck-java:tool-verification/java/SqlInjectionExample.java",
+            "project": "toolcheck-java",
+            "line": 20,
+            "hash": "d983fe02b794d30d7d56d965a8676095",
+            "textRange": {
+                "startLine": 20,
+                "endLine": 20,
+                "startOffset": 12,
+                "endOffset": 22
+            },
+            "flows": [],
+            "status": "OPEN",
+            "message": "Replace this use of System.out by a logger.",
+            "effort": "10min",
+            "debt": "10min",
+            "author": "32734670+victor554@users.noreply.github.com",
+            "tags": [
+                "bad-practice",
+                "cert"
+            ],
+            "creationDate": "2026-07-29T00:51:36+0000",
+            "updateDate": "2026-07-29T12:02:06+0000",
+            "type": "CODE_SMELL",
+            "scope": "MAIN",
+            "quickFixAvailable": false,
+            "messageFormattings": [],
+            "codeVariants": [],
+            "cleanCodeAttribute": "MODULAR",
+            "cleanCodeAttributeCategory": "ADAPTABLE",
+            "impacts": [
+                {
+                    "softwareQuality": "MAINTAINABILITY",
+                    "severity": "MEDIUM"
+                }
+            ],
+            "issueStatus": "OPEN",
+            "prioritizedRule": false,
+            "fromSonarQubeUpdate": false,
+            "internalTags": [],
+            "linkedTicketStatus": "NOT_LINKED"
+        }
+    ],
+    "components": [
+        {
+            "key": "toolcheck-java",
+            "enabled": true,
+            "qualifier": "TRK",
+            "name": "toolcheck-java",
+            "longName": "toolcheck-java"
+        },
+        {
+            "key": "toolcheck-java:tool-verification/java/SqlInjectionExample.java",
+            "enabled": true,
+            "qualifier": "FIL",
+            "name": "SqlInjectionExample.java",
+            "longName": "tool-verification/java/SqlInjectionExample.java",
+            "path": "tool-verification/java/SqlInjectionExample.java"
+        }
+    ],
+    "facets": []
+}
