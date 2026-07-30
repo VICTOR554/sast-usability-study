@@ -10,3 +10,6 @@ vuln-bank,Vuln-Bank,python,https://github.com/Commando-X/vuln-bank,main,commit_s
 juice-shop,OWASP Juice Shop,javascript,https://github.com/juice-shop/juice-shop,master,commit_sha,a520e158cb65c43d24e2c55d84f09b05a2511a03,sources/juice-shop,2026-07-30
 nodegoat,OWASP NodeGoat,javascript,https://github.com/OWASP/NodeGoat,master,commit_sha,c5cb68a7084e4ae7dcc60e6a98768720a81841e8,sources/NodeGoat,2026-07-30
 dvna,Damn Vulnerable NodeJS Application,javascript,https://github.com/appsecco/dvna,master,commit_sha,9ba473add536f66ac9007966acb2a775dd31277a,sources/dvna,2026-07-30
+nodejs-goof,Goof (Snyk Labs),javascript,https://github.com/snyk-labs/nodejs-goof,master,commit_sha,add14ba59e98240d9e00a235dd7d42cd61ae9912,sources/nodejs-goof,2026-07-30
+brokencrystals,Broken Crystals (NeuraLegion),javascript,https://github.com/NeuraLegion/brokencrystals,master,commit_sha,ccbeec0314c3a7ea98b542852567ec8c4735fa18,sources/brokencrystals,2026-07-30
+dvws-node,Damn Vulnerable Web Services (Node),javascript,https://github.com/snoopysecurity/dvws-node,master,commit_sha,a7385b855dce7a4da135f5949df96059b76aaba6,sources/dvws-node,2026-07-30
