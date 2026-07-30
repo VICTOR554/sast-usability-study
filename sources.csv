@@ -1,6 +1,12 @@
-source_id,name,url,version,ref_type,ref,retrieved_date
-benchmark,OWASP Benchmark (Java),https://github.com/OWASP-Benchmark/BenchmarkJava,main,commit_sha,79b9bd6177e07991a9c11dc19e457c840e229931,2026-07-29
-webgoat,OWASP WebGoat,https://github.com/WebGoat/WebGoat,main,commit_sha,5142935bf7c279882c3b0fc0ecec42c447de6fd5,2026-07-29
-pygoat,OWASP PyGoat,https://github.com/adeyosemanputra/pygoat,master,commit_sha,19d17cc8874861142b330636d068bbde54e86b85,2026-07-29
-juliet-java,Juliet Test Suite for Java,https://samate.nist.gov/SARD/downloads/test-suites/2017-10-01-juliet-test-suite-for-java-v1-3.zip,1.3,sha256,d985f4177c2bcd7b03455a05c1c8f2e755f55c9eb250accd052f05f877347e60,2026-07-29
-juliet-csharp,Juliet Test Suite for C#,https://samate.nist.gov/SARD/downloads/test-suites/2020-08-01-juliet-test-suite-for-csharp-v1-3.zip,1.3,sha256,2e6dbac4741fb020a0b1c2db69e98aed165987df2bd70bd51f7c8c5302c8e8f8,2026-07-29
+source_id,name,language,url,version,ref_type,ref,local_path,retrieved_date
+benchmark,OWASP Benchmark,java,https://github.com/OWASP-Benchmark/BenchmarkJava,main,commit_sha,79b9bd6177e07991a9c11dc19e457c840e229931,sources/BenchmarkJava,2026-07-29
+webgoat,OWASP WebGoat,java,https://github.com/WebGoat/WebGoat,main,commit_sha,5142935bf7c279882c3b0fc0ecec42c447de6fd5,sources/WebGoat,2026-07-29
+juliet-java,Juliet Test Suite for Java,java,https://samate.nist.gov/SARD/downloads/test-suites/2017-10-01-juliet-test-suite-for-java-v1-3.zip,1.3,sha256,d985f4177c2bcd7b03455a05c1c8f2e755f55c9eb250accd052f05f877347e60,sources/juliet-java,2026-07-29
+pygoat,OWASP PyGoat,python,https://github.com/adeyosemanputra/pygoat,master,commit_sha,19d17cc8874861142b330636d068bbde54e86b85,sources/pygoat,2026-07-29
+vulpy,Vulpy,python,https://github.com/fportantier/vulpy,master,commit_sha,5249cc8b05a1c37f6b2f757b1cf16a509c327122,sources/vulpy,2026-07-30
+bandit-examples,Bandit example fixtures (PyCQA),python,https://github.com/PyCQA/bandit,main,commit_sha,8f2376625dedf1ded2e62b4f856644eaf85f6f5c,sources/bandit-examples,2026-07-30
+djangoat,DjanGoat (Contrast Security),python,https://github.com/Contrast-Security-OSS/DjanGoat,master,commit_sha,082c88bfefced508ae083b92b459c808f95e905e,sources/DjanGoat,2026-07-30
+vuln-bank,Vuln-Bank,python,https://github.com/Commando-X/vuln-bank,main,commit_sha,5e5ea5425fcf309373a0655dd111ecfb45037cbf,sources/vuln-bank,2026-07-30
+juice-shop,OWASP Juice Shop,javascript,https://github.com/juice-shop/juice-shop,master,commit_sha,a520e158cb65c43d24e2c55d84f09b05a2511a03,sources/juice-shop,2026-07-30
+nodegoat,OWASP NodeGoat,javascript,https://github.com/OWASP/NodeGoat,master,commit_sha,c5cb68a7084e4ae7dcc60e6a98768720a81841e8,sources/NodeGoat,2026-07-30
+dvna,Damn Vulnerable NodeJS Application,javascript,https://github.com/appsecco/dvna,master,commit_sha,9ba473add536f66ac9007966acb2a775dd31277a,sources/dvna,2026-07-30
