@@ -22,10 +22,26 @@ RULE_OVERRIDES so every correction stays visible.
 
 import argparse
 import csv
+import gzip
 import json
 import re
 from collections import defaultdict
 from pathlib import Path
+
+
+def load_json(path: Path):
+    """Scan files over 1 MB are gzipped, so both forms have to be readable."""
+    if str(path).endswith(".gz"):
+        with gzip.open(path, "rt") as f:
+            return json.load(f)
+    with open(path) as f:
+        return json.load(f)
+
+
+def scan_files(tool: str, ext: str):
+    """Every scan result for a tool, compressed or not."""
+    d = RUNS / tool
+    return sorted(list(d.glob(f"*{ext}")) + list(d.glob(f"*{ext}.gz")))
 
 ROOT = Path(__file__).resolve().parent.parent
 RUNS = ROOT / "runs"
@@ -98,6 +114,25 @@ def excluded(path):
     return p.suffix in EXCLUDE_SUFFIXES
 
 
+def codeql_scanned(project):
+    """Files CodeQL indexed for this source. Juliet is scoped for CodeQL but
+    scanned in full by the other two, so a file only Semgrep saw would look
+    like CodeQL missed it. Candidates are limited to what all three read.
+
+    Missing output stops the run rather than returning nothing. Skipping the
+    check silently gave a plausible but wrong matrix once already."""
+    for p in (RUNS / "codeql" / f"{project}.sarif",
+              RUNS / "codeql" / f"{project}.sarif.gz"):
+        if p.exists():
+            break
+    else:
+        raise SystemExit(f"no CodeQL output for {project} - "
+                         f"cannot check which files it read")
+    run = load_json(p)["runs"][0]
+    return {Path(a.get("location", {}).get("uri", "")).name
+            for a in run.get("artifacts", [])}
+
+
 def load_all():
     """Reads every scan file and returns one row per finding."""
     langs = {}
@@ -105,20 +140,20 @@ def load_all():
         for r in csv.DictReader(f):
             langs[r["source_id"]] = r["language"]
 
-    for p in sorted((RUNS / "semgrep").glob("*.json")):
-        proj = p.stem
+    for p in scan_files("semgrep", ".json"):
+        proj = p.name.split(".")[0]
         if proj not in langs:
             continue
-        for r in json.load(open(p)).get("results", []):
+        for r in load_json(p).get("results", []):
             vt, basis = classify(r["check_id"], cwe_from_semgrep(r))
             yield (proj, langs[proj], "semgrep", r["check_id"], vt, basis,
                    r["path"], r.get("start", {}).get("line"))
 
-    for p in sorted((RUNS / "codeql").glob("*.sarif")):
-        proj = p.stem
+    for p in scan_files("codeql", ".sarif"):
+        proj = p.name.split(".")[0]
         if proj not in langs:
             continue
-        run = json.load(open(p))["runs"][0]
+        run = load_json(p)["runs"][0]
         rules = {x["id"]: x for x in run["tool"]["driver"].get("rules", [])}
         for r in run.get("results", []):
             rid = r.get("ruleId")
@@ -127,11 +162,11 @@ def load_all():
             yield (proj, langs[proj], "codeql", rid, vt, basis,
                    L["artifactLocation"]["uri"], L["region"].get("startLine"))
 
-    for p in sorted((RUNS / "bearer").glob("*.json")):
-        proj = p.stem
+    for p in scan_files("bearer", ".json"):
+        proj = p.name.split(".")[0]
         if proj not in langs:
             continue
-        d = json.load(open(p))
+        d = load_json(p)
         for sev in ("critical", "high", "medium", "low", "warning"):
             for x in d.get(sev) or []:
                 cwes = [str(int(c)) for c in (x.get("cwe_ids") or []) if str(c).isdigit()]
@@ -166,9 +201,17 @@ def main():
             print(f"  {n:5d}  [{tool:8s}] {rid}")
         return
 
+    ql_seen = {}
     cells = defaultdict(lambda: defaultdict(set))
+    dropped = 0
     for (proj, lang, tool, rid, vt, basis, path, line) in rows:
         if vt is None or not path or excluded(path):
+            continue
+        if proj not in ql_seen:
+            ql_seen[proj] = codeql_scanned(proj)
+        seen = ql_seen[proj]
+        if seen is not None and Path(path).name not in seen:
+            dropped += 1
             continue
         cells[(lang, vt)][f"{proj}:{path}"].add(tool)
 
@@ -196,6 +239,8 @@ def main():
         print(line)
     print("-" * 76)
     print(f"(files per cell; * = fewer than {args.min})")
+    if dropped:
+        print(f"{dropped} findings excluded: file not scanned by CodeQL")
     if short:
         print(f"\n{short} cell(s) below target")
 

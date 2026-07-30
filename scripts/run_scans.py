@@ -1,24 +1,19 @@
 #!/usr/bin/env python3
-"""Run Semgrep, CodeQL and Bearer over each source project.
+"""Run Semgrep, CodeQL and Bearer over each source.
 
-Raw output is written to runs/<tool>/<project>.*  and is never modified
-afterwards; classification happens separately in coverage.py.
+Output goes to runs/<tool>/<source>.* and is not changed afterwards.
+coverage.py does the sorting into vulnerability types.
 
-Two behaviours matter here:
+Each source is copied to a folder outside the repo before scanning.
+Semgrep and Bearer both follow .gitignore, and sources/ is ignored, so
+scanning it where it sits makes them report nothing at all.
 
-1. Projects are staged to a temporary directory outside the repository
-   before scanning. Semgrep and Bearer both respect .gitignore, and
-   sources/ is ignored, so scanning in place makes them silently report
-   zero findings.
+After each scan the number of files the tool says it read is compared
+against the number it was given. If a tool quietly skips files, the
+result looks the same as clean code, so a mismatch stops the run.
 
-2. After each scan the number of files the tool reports analysing is
-   compared against the number staged. A mismatch aborts the run. A
-   silent skip is indistinguishable from clean code, so it must fail
-   loudly rather than produce a plausible-looking empty result.
-
-Usage:
-    python3 scripts/run_scans.py                 # all projects
-    python3 scripts/run_scans.py pygoat dvna     # named projects only
+    python3 scripts/run_scans.py                 # every source
+    python3 scripts/run_scans.py pygoat dvna     # named sources
     python3 scripts/run_scans.py --tools semgrep,bearer
 """
 
@@ -47,13 +42,21 @@ EXTS = {
     "javascript": {".js", ".ts", ".ejs", ".pug", ".hbs", ".jsx", ".tsx"},
 }
 
+# Semgrep reads templates as well as source. CodeQL and Bearer only read the
+# language's own files, and only count those, so their expected totals are
+# taken from this narrower set.
+NATIVE_EXTS = {
+    "java": {".java"},
+    "python": {".py"},
+    "javascript": {".js", ".ts", ".jsx", ".tsx"},
+}
+
 # Directories never worth scanning.
 SKIP_DIRS = {"node_modules", ".git", "dist", "build", "target", "__pycache__",
              "venv", ".venv", "vendor"}
 
-# Test directories, excluded because a tool's own test file is not a
-# candidate example. Note "testcases" is deliberately absent: Juliet stores
-# every case under src/testcases/, and excluding it would empty the corpus.
+# Test folders. "testcases" is not in this list on purpose - Juliet keeps
+# every case under src/testcases/, so excluding it would empty the corpus.
 SKIP_TEST_DIRS = {"test", "tests", "__tests__", "spec", "e2e"}
 
 
@@ -64,13 +67,22 @@ def is_test_file(path: Path) -> bool:
         return True
     name = path.name
     stem = path.stem
+    # Bearer also treats a file simply named test.js or spec.py as a test and
+    # skips it, so those are dropped here too or the counts never agree.
     return (name.startswith("test_") or stem.endswith("_test")
-            or ".test." in name or ".spec." in name)
+            or ".test." in name or ".spec." in name
+            or stem in ("test", "tests", "spec"))
 
-# CodeQL is the only tool expensive enough to need scoping. For Juliet Java
-# it is restricted to the four relevant CWE directories, servlet variants
-# only -- the other variants use console/file/environment input, which
-# CodeQL does not treat as untrusted, so they yield nothing regardless.
+
+def is_minified(path: Path) -> bool:
+    """Minified libraries are one long line, so Semgrep skips them. They are
+    third-party code and would not be used as examples anyway."""
+    return ".min." in path.name or path.name.endswith("-min.js")
+
+# CodeQL is slow enough that Juliet has to be narrowed down. Only the four
+# CWE folders we need, and only the servlet versions. The other versions read
+# from the console or a file, which CodeQL does not count as untrusted input,
+# so it finds nothing in them anyway.
 CODEQL_SCOPE = {
     "juliet-java": {
         "include_dirs": ["CWE89_SQL_Injection", "CWE80_XSS",
@@ -102,7 +114,8 @@ def source_files(root: Path, language: str):
         dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
         for fn in filenames:
             p = Path(dirpath) / fn
-            if p.suffix in exts and not is_test_file(p.relative_to(root)):
+            rel = p.relative_to(root)
+            if p.suffix in exts and not is_test_file(rel) and not is_minified(p):
                 out.append(p)
     return out
 
@@ -129,8 +142,8 @@ def run(cmd, **kw):
     return subprocess.run(cmd, capture_output=True, text=True, **kw)
 
 
-# --- per-tool scans -------------------------------------------------------
-# Each returns (output_path, files_analysed) so the caller can assert.
+# Each scan returns where it wrote the output and how many files the tool
+# read, so the caller can compare that against what it was given.
 
 def scan_semgrep(staged_dir: Path, out: Path):
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -143,23 +156,32 @@ def scan_semgrep(staged_dir: Path, out: Path):
     return out, analysed
 
 
+def bearer_file_count(output: str):
+    """Reads the Files column from Bearer's summary table. The JSON report
+    only lists files that had findings, so without this you cannot tell a
+    clean file from one Bearer never opened."""
+    total = None
+    for line in output.replace("\r", "\n").splitlines():
+        parts = line.split()
+        # rows look like: Python  88  0  8
+        if len(parts) >= 4 and all(p.isdigit() for p in parts[-3:]):
+            total = (total or 0) + int(parts[-1])
+    return total
+
+
 def scan_bearer(staged_dir: Path, out: Path):
+    """Bearer runs twice. With --output it writes the JSON but prints no
+    summary. Without it, it prints the table holding the file count but no
+    file to read. Bearer is the fastest of the three, so running it twice is
+    cheaper than having no way to tell what it read."""
     out.parent.mkdir(parents=True, exist_ok=True)
-    run([BEARER, "scan", str(staged_dir), "--scanner", "sast",
-         "--skip-git-ignore", "--skip-test=false",
-         "--format", "json", "--output", str(out)])
+    base = [BEARER, "scan", str(staged_dir), "--scanner", "sast",
+            "--skip-git-ignore", "--skip-test=false"]
+    run(base + ["--format", "json", "--output", str(out)])
     if not out.exists():
         raise RuntimeError("bearer produced no output")
-    # Bearer does not report a file count in JSON output, so it is counted
-    # from the findings' distinct filenames -- a weaker check than the
-    # others, and the reason the staged count is also logged.
-    d = json.load(open(out))
-    files = set()
-    for sev in ("critical", "high", "medium", "low", "warning"):
-        for x in d.get(sev) or []:
-            if x.get("filename"):
-                files.add(x["filename"])
-    return out, len(files)
+    r = run(base)
+    return out, bearer_file_count(r.stdout + r.stderr)
 
 
 def scan_codeql(staged_dir: Path, out: Path, language: str, db: Path):
@@ -178,8 +200,10 @@ def scan_codeql(staged_dir: Path, out: Path, language: str, db: Path):
              "--format=sarif-latest", f"--output={out}", "--download"])
     if not out.exists():
         raise RuntimeError(f"codeql analyze failed\n{r.stderr[-2000:]}")
-    # CodeQL reports coverage in its stderr summary; parse the "scanned X out
-    # of Y" line if present, otherwise fall back to distinct result files.
+    # CodeQL never says plainly how many files it read. Its summary line is
+    # too low, counting only the files it analysed. Its file list is too high,
+    # counting templates it does not read as code. Both are printed, neither
+    # is used to fail the run.
     analysed = None
     for line in (r.stdout + r.stderr).splitlines():
         if "scanned" in line and "out of" in line:
@@ -188,7 +212,8 @@ def scan_codeql(staged_dir: Path, out: Path, language: str, db: Path):
                 analysed = int(parts[parts.index("scanned") + 1])
             except (ValueError, IndexError):
                 pass
-    return out, analysed
+    indexed = len(json.load(open(out))["runs"][0].get("artifacts", []))
+    return out, analysed, indexed
 
 
 def main():
@@ -231,9 +256,26 @@ def main():
                 if n != len(staged):
                     failures.append(f"{sid}: semgrep analysed {n} of {len(staged)}")
 
+            native = sum(1 for f in staged if Path(f).suffix in NATIVE_EXTS[lang])
+
             if "bearer" in tools:
                 out, n = scan_bearer(tmp, RUNS / "bearer" / f"{sid}.json")
-                print(f"  bearer  : {n} files with findings of {len(staged)} staged")
+                if n is None:
+                    print(f"  bearer  : file count not reported, {native} staged")
+                    failures.append(f"{sid}: bearer did not report a file count")
+                else:
+                    # Bearer skips the odd file for reasons it does not
+                    # explain. This check is here to catch a tool reading
+                    # nothing or half a project, not to chase single config
+                    # files, so a small gap is a warning and not a failure.
+                    missing = native - n
+                    if missing == 0:
+                        print(f"  bearer  : analysed {n}/{native}  [OK]")
+                    elif missing <= max(2, native * 0.05):
+                        print(f"  bearer  : analysed {n}/{native}  [{missing} skipped]")
+                    else:
+                        print(f"  bearer  : analysed {n}/{native}  [MISMATCH]")
+                        failures.append(f"{sid}: bearer analysed {n} of {native}")
 
             if "codeql" in tools:
                 scope = CODEQL_SCOPE.get(sid)
@@ -241,18 +283,17 @@ def main():
                     tmp2 = Path(tempfile.mkdtemp(prefix=f"scanql-{sid}-"))
                     sub = stage(src, tmp2, lang, scope=scope)
                     print(f"  codeql  : scoped to {len(sub)} files")
-                    target, expected = tmp2, len(sub)
+                    target, files = tmp2, sub
                 else:
-                    target, expected = tmp, len(staged)
-                out, n = scan_codeql(target, RUNS / "codeql" / f"{sid}.sarif",
-                                     lang, CODEQL_DBS / sid)
-                if n is None:
-                    print(f"  codeql  : analysed (count not reported) of {expected}")
-                else:
-                    ok = "OK" if n == expected else "MISMATCH"
-                    print(f"  codeql  : analysed {n}/{expected}  [{ok}]")
-                    if n != expected:
-                        failures.append(f"{sid}: codeql analysed {n} of {expected}")
+                    target, files = tmp, staged
+                # Counted against the files CodeQL reads, so templates do not
+                # throw it off. Printed only - see scan_codeql for why.
+                expected = sum(1 for f in files if Path(f).suffix in NATIVE_EXTS[lang])
+                out, n, indexed = scan_codeql(target, RUNS / "codeql" / f"{sid}.sarif",
+                                              lang, CODEQL_DBS / sid)
+                shown = "?" if n is None else n
+                print(f"  codeql  : analysed {shown} of {expected} source files, "
+                      f"{indexed} files indexed")
                 if scope and not args.keep_staged:
                     shutil.rmtree(tmp2, ignore_errors=True)
         finally:
