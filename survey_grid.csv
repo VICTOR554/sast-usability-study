@@ -1,0 +1,13 @@
+tool,vuln_type,language,candidate_files
+semgrep,sqli,java,976
+semgrep,xss,python,15
+semgrep,path-traversal,javascript,9
+semgrep,cmd-injection,java,292
+codeql,sqli,python,6
+codeql,xss,java,2387
+codeql,path-traversal,python,6
+codeql,cmd-injection,javascript,8
+bearer,sqli,javascript,13
+bearer,xss,javascript,12
+bearer,path-traversal,java,162
+bearer,cmd-injection,python,5
