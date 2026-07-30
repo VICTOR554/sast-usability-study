@@ -1,0 +1,13 @@
+example_id,language,vuln_type,source_id,source_path,dataset_path,line,survey_role
+EX001,java,sqli,juliet-java,juliet-java/Java/src/testcases/CWE89_SQL_Injection/s02/CWE89_SQL_Injection__getCookies_Servlet_executeQuery_01.java,dataset/java/sqli/EX001/CWE89_SQL_Injection__getCookies_Servlet_executeQuery_01.java,,
+EX002,java,xss,juliet-java,juliet-java/Java/src/testcases/CWE80_XSS/s01/CWE80_XSS__Servlet_getParameter_Servlet_01.java,dataset/java/xss/EX002/CWE80_XSS__Servlet_getParameter_Servlet_01.java,,
+EX003,java,path-traversal,juliet-java,juliet-java/Java/src/testcases/CWE23_Relative_Path_Traversal/CWE23_Relative_Path_Traversal__getParameter_Servlet_01.java,dataset/java/path-traversal/EX003/CWE23_Relative_Path_Traversal__getParameter_Servlet_01.java,,
+EX004,java,cmd-injection,juliet-java,juliet-java/Java/src/testcases/CWE78_OS_Command_Injection/CWE78_OS_Command_Injection__getCookies_Servlet_01.java,dataset/java/cmd-injection/EX004/CWE78_OS_Command_Injection__getCookies_Servlet_01.java,,
+EX005,python,sqli,vuln-bank,vuln-bank/auth.py,dataset/python/sqli/EX005/auth.py,,
+EX006,python,xss,djangoat,DjanGoat/app/views/admin/views.py,dataset/python/xss/EX006/views.py,,
+EX007,python,path-traversal,djangoat,DjanGoat/app/models/Benefits/benefits.py,dataset/python/path-traversal/EX007/benefits.py,,
+EX008,python,cmd-injection,pygoat,pygoat/introduction/mitre.py,dataset/python/cmd-injection/EX008/mitre.py,,
+EX009,javascript,sqli,dvws-node,dvws-node/models/users.js,dataset/javascript/sqli/EX009/users.js,,
+EX010,javascript,xss,juice-shop,juice-shop/routes/userProfile.ts,dataset/javascript/xss/EX010/userProfile.ts,,
+EX011,javascript,path-traversal,juice-shop,juice-shop/routes/fileServer.ts,dataset/javascript/path-traversal/EX011/fileServer.ts,,
+EX012,javascript,cmd-injection,dvna,dvna/core/appHandler.js,dataset/javascript/cmd-injection/EX012/appHandler.js,,
