@@ -105,6 +105,19 @@ def classify(rule_id, cwes):
     return None, None
 
 
+def norm_path(path: str) -> str:
+    """Same file, same string, whichever tool reported it.
+
+    Semgrep prints the full path of the copy it scanned, while CodeQL and
+    Bearer print it relative to the source. Left alone, one file counts two
+    or three times and no file ever looks like all three tools found it."""
+    p = str(path).replace("\\", "/")
+    m = re.search(r"/scan(?:ql)?-[^/]+/(.*)$", p)
+    if m:
+        return m.group(1)
+    return p.lstrip("./")
+
+
 def excluded(path):
     p = Path(path)
     if set(p.parts) & EXCLUDE_PATH_PARTS:
@@ -147,7 +160,7 @@ def load_all():
         for r in load_json(p).get("results", []):
             vt, basis = classify(r["check_id"], cwe_from_semgrep(r))
             yield (proj, langs[proj], "semgrep", r["check_id"], vt, basis,
-                   r["path"], r.get("start", {}).get("line"))
+                   norm_path(r["path"]), r.get("start", {}).get("line"))
 
     for p in scan_files("codeql", ".sarif"):
         proj = p.name.split(".")[0]
@@ -160,7 +173,7 @@ def load_all():
             vt, basis = classify(rid, cwe_from_codeql(rules.get(rid, {})))
             L = r["locations"][0]["physicalLocation"]
             yield (proj, langs[proj], "codeql", rid, vt, basis,
-                   L["artifactLocation"]["uri"], L["region"].get("startLine"))
+                   norm_path(L["artifactLocation"]["uri"]), L["region"].get("startLine"))
 
     for p in scan_files("bearer", ".json"):
         proj = p.name.split(".")[0]
@@ -172,7 +185,7 @@ def load_all():
                 cwes = [str(int(c)) for c in (x.get("cwe_ids") or []) if str(c).isdigit()]
                 vt, basis = classify(x.get("id"), cwes)
                 yield (proj, langs[proj], "bearer", x.get("id"), vt, basis,
-                       x.get("filename") or "", x.get("line_number"))
+                       norm_path(x.get("filename") or ""), x.get("line_number"))
 
 
 def main():
