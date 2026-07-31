@@ -16,11 +16,9 @@ Remediations
 References
 - OWASP SQL injection explained
 - OWASP SQL injection prevention cheat sheet",https://docs.bearer.com/reference/rules/java_lang_sqli
-OUT002,EX001,java,sqli,codeql,java/sql-injection,error,57,49,This query depends on a [user-provided value](1).,Building a SQL or Java Persistence query from user-controlled sources is vulnerable to insertion of malicious code by the user.,
-OUT003,EX001,java,sqli,semgrep,java.lang.security.audit.sqli.jdbc-sqli.jdbc-sqli,WARNING,57,25,Detected a formatted string in a SQL statement. This could lead to SQL injection if variables in the SQL statement are not properly sanitized. Use a prepared statements (java.sql.PreparedStatement) instead. You can obtain a PreparedStatement using 'connection.prepareStatement'.,,https://owasp.org/Top10/A03_2021-Injection
-OUT004,EX002,java,sqli,semgrep,java.lang.security.audit.sqli.tainted-sql-from-http-request.tainted-sql-from-http-request,WARNING,45,13,Detected input from a HTTPServletRequest going into a SQL sink or statement. This could lead to SQL injection if variables in the SQL statement are not properly sanitized. Use parameterized SQL queries or properly sanitize user input instead.,,https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html
-OUT005,EX003,java,sqli,codeql,java/sql-injection,error,49,15,This query depends on a [user-provided value](1).,Building a SQL or Java Persistence query from user-controlled sources is vulnerable to insertion of malicious code by the user.,
-OUT006,EX004,java,sqli,bearer,java_lang_sqli,critical,42,,Unsanitized external input in SQL query,"Description
+OUT002,EX001,java,sqli,codeql,java/sql-injection,error,57,75,This query depends on a [user-provided value](1).,Building a SQL or Java Persistence query from user-controlled sources is vulnerable to insertion of malicious code by the user.,
+OUT003,EX001,java,sqli,semgrep,java.lang.security.audit.sqli.tainted-sql-from-http-request.tainted-sql-from-http-request,WARNING,57,13,Detected input from a HTTPServletRequest going into a SQL sink or statement. This could lead to SQL injection if variables in the SQL statement are not properly sanitized. Use parameterized SQL queries or properly sanitize user input instead.,,https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html
+OUT004,EX002,java,sqli,bearer,java_lang_sqli,critical,94,,Unsanitized external input in SQL query,"Description
 Using unsanitized data, such as user input or request data, or externally influenced data passed to a function, in SQL query exposes your application to SQL injection attacks. This vulnerability arises when externally controlled data is directly included in SQL statements without proper sanitation, allowing attackers to manipulate queries and access or modify data.
 Remediations
 - **Do not** include unsanitized input in SQL queries. This practice can lead to SQL injection vulnerabilities.
@@ -37,9 +35,36 @@ Remediations
 References
 - OWASP SQL injection explained
 - OWASP SQL injection prevention cheat sheet",https://docs.bearer.com/reference/rules/java_lang_sqli
-OUT007,EX004,java,sqli,codeql,java/sql-injection,error,42,51,This query depends on a [user-provided value](1).,Building a SQL or Java Persistence query from user-controlled sources is vulnerable to insertion of malicious code by the user.,
-OUT008,EX004,java,sqli,semgrep,java.lang.security.audit.sqli.jdbc-sqli.jdbc-sqli,WARNING,42,13,Detected a formatted string in a SQL statement. This could lead to SQL injection if variables in the SQL statement are not properly sanitized. Use a prepared statements (java.sql.PreparedStatement) instead. You can obtain a PreparedStatement using 'connection.prepareStatement'.,,https://owasp.org/Top10/A03_2021-Injection
-OUT009,EX005,java,sqli,bearer,java_lang_sqli,critical,54,,Unsanitized external input in SQL query,"Description
+OUT005,EX002,java,sqli,semgrep,java.lang.security.audit.sqli.jdbc-sqli.jdbc-sqli,WARNING,94,25,Detected a formatted string in a SQL statement. This could lead to SQL injection if variables in the SQL statement are not properly sanitized. Use a prepared statements (java.sql.PreparedStatement) instead. You can obtain a PreparedStatement using 'connection.prepareStatement'.,,https://owasp.org/Top10/A03_2021-Injection
+OUT006,EX003,java,sqli,semgrep,java.lang.security.audit.sqli.tainted-sql-from-http-request.tainted-sql-from-http-request,WARNING,48,13,Detected input from a HTTPServletRequest going into a SQL sink or statement. This could lead to SQL injection if variables in the SQL statement are not properly sanitized. Use parameterized SQL queries or properly sanitize user input instead.,,https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html
+OUT007,EX004,java,sqli,bearer,java_spring_sqli,critical,52,,Unsanitized external input in SQL query,"Description
+Using unsanitized data, such as user input or request data, or externally influenced data passed to a function, in SQL query exposes your application to SQL injection attacks. This vulnerability arises when externally controlled data is directly included in SQL statements without proper sanitation, allowing attackers to manipulate queries and access or modify data.
+Remediations
+- **Do not** concatenate external input directly into SQL queries. This practice can lead to SQL injection vulnerabilities.
+  java
+  String query = ""update user set name='""+uri.getQueryParameter(""name"")+""' where id='""+uri.getQueryParameter(""userId"")+""'"";
+  return jdbcTemplate.update(query);
+  
+- **Do** use PreparedStatement with parameterized SQL queries to safely include external input. This method ensures that input is treated as data, not executable code.
+  java
+  new PreparedStatementCreator() {
+    public PreparedStatement createPreparedStatement(Connection conn) throws SQLException {
+      String updateString = ""update user set name = ? where id = ?"";
+      return conn.prepareStatement(updateString);
+    }
+  }
+  new PreparedStatementSetter() {
+    public void setValues(PreparedStatement preparedStatement) throws SQLException {
+      preparedStatement.setString(1, uri.getQueryParameter(""name""));
+      preparedStatement.setInt(2, uri.getQueryParameter(""userId""));
+    }
+  }
+  
+References
+- JDBC Template class
+- OWASP SQL injection explained
+- OWASP SQL injection prevention cheat sheet",https://docs.bearer.com/reference/rules/java_spring_sqli
+OUT008,EX005,java,sqli,bearer,java_lang_sqli,critical,65,,Unsanitized external input in SQL query,"Description
 Using unsanitized data, such as user input or request data, or externally influenced data passed to a function, in SQL query exposes your application to SQL injection attacks. This vulnerability arises when externally controlled data is directly included in SQL statements without proper sanitation, allowing attackers to manipulate queries and access or modify data.
 Remediations
 - **Do not** include unsanitized input in SQL queries. This practice can lead to SQL injection vulnerabilities.
@@ -56,7 +81,10 @@ Remediations
 References
 - OWASP SQL injection explained
 - OWASP SQL injection prevention cheat sheet",https://docs.bearer.com/reference/rules/java_lang_sqli
-OUT010,EX006,java,xss,bearer,java_lang_xss_response_writer,high,55,,Unsanitized user input in output stream (XSS),"Description
+OUT009,EX005,java,sqli,codeql,java/sql-injection,error,65,25,"This query depends on a [user-provided value](1).
+This query depends on a [user-provided value](2).",Building a SQL or Java Persistence query from user-controlled sources is vulnerable to insertion of malicious code by the user.,
+OUT010,EX005,java,sqli,semgrep,java.lang.security.audit.formatted-sql-string.formatted-sql-string,ERROR,65,7,Detected a formatted string in a SQL statement. This could lead to SQL injection if variables in the SQL statement are not properly sanitized. Use a prepared statements (java.sql.PreparedStatement) instead. You can obtain a PreparedStatement using 'connection.prepareStatement'.,,https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html
+OUT011,EX006,java,xss,bearer,java_lang_xss_response_writer,high,55,,Unsanitized user input in output stream (XSS),"Description
 Cross-site scripting (XSS) vulnerabilities occur when unsanitized user input is included in web page content. This flaw can lead to malicious scripts being executed in the context of the user's browser, compromising the security of user data and interactions with the application.
 Remediations
 - **Do** use an encoder to handle user input before incorporating it into the output stream. This step helps minimize the risk of XSS attacks by converting potentially dangerous characters into a safe format.
@@ -74,15 +102,31 @@ Remediations
 References
 - OWASP XSS Prevention Cheatsheet
 - OWASP Java Encoder",https://docs.bearer.com/reference/rules/java_lang_xss_response_writer
-OUT011,EX006,java,xss,codeql,java/xss,error,55,71,Cross-site scripting vulnerability due to a [user-provided value](1).,Writing user input directly to a web page allows for a cross-site scripting vulnerability.,
-OUT012,EX006,java,xss,semgrep,java.lang.security.audit.xss.no-direct-response-writer.no-direct-response-writer,WARNING,55,9,"Detected a request with potential user-input going into a OutputStream or Writer object. This bypasses any view or template environments, including HTML escaping, which may expose this application to cross-site scripting (XSS) vulnerabilities. Consider using a view technology such as JavaServer Faces (JSFs) which automatically escapes HTML views.",,https://www3.ntu.edu.sg/home/ehchua/programming/java/JavaServerFaces.html
-OUT013,EX007,java,xss,codeql,java/xss,error,32,42,Cross-site scripting vulnerability due to a [user-provided value](1).,Writing user input directly to a web page allows for a cross-site scripting vulnerability.,
-OUT014,EX008,java,xss,codeql,java/xss,error,115,33,"Cross-site scripting vulnerability due to a [user-provided value](1).
-Cross-site scripting vulnerability due to a [user-provided value](2).",Writing user input directly to a web page allows for a cross-site scripting vulnerability.,
-OUT015,EX009,java,xss,codeql,java/xss,error,33,42,Cross-site scripting vulnerability due to a [user-provided value](1).,Writing user input directly to a web page allows for a cross-site scripting vulnerability.,
-OUT016,EX010,java,xss,codeql,java/xss,error,88,29,"Cross-site scripting vulnerability due to a [user-provided value](1).
-Cross-site scripting vulnerability due to a [user-provided value](2).",Writing user input directly to a web page allows for a cross-site scripting vulnerability.,
-OUT017,EX011,java,path-traversal,bearer,java_lang_path_using_user_input,high,49,,Unsanitized user input in file path,"Description
+OUT012,EX006,java,xss,codeql,java/xss,error,55,71,Cross-site scripting vulnerability due to a [user-provided value](1).,Writing user input directly to a web page allows for a cross-site scripting vulnerability.,
+OUT013,EX006,java,xss,semgrep,java.lang.security.audit.xss.no-direct-response-writer.no-direct-response-writer,WARNING,55,9,"Detected a request with potential user-input going into a OutputStream or Writer object. This bypasses any view or template environments, including HTML escaping, which may expose this application to cross-site scripting (XSS) vulnerabilities. Consider using a view technology such as JavaServer Faces (JSFs) which automatically escapes HTML views.",,https://www3.ntu.edu.sg/home/ehchua/programming/java/JavaServerFaces.html
+OUT014,EX007,java,xss,codeql,java/xss,error,32,42,Cross-site scripting vulnerability due to a [user-provided value](1).,Writing user input directly to a web page allows for a cross-site scripting vulnerability.,
+OUT015,EX008,java,xss,codeql,java/xss,error,32,42,Cross-site scripting vulnerability due to a [user-provided value](1).,Writing user input directly to a web page allows for a cross-site scripting vulnerability.,
+OUT016,EX009,java,xss,bearer,java_lang_xss_response_writer,high,80,,Unsanitized user input in output stream (XSS),"Description
+Cross-site scripting (XSS) vulnerabilities occur when unsanitized user input is included in web page content. This flaw can lead to malicious scripts being executed in the context of the user's browser, compromising the security of user data and interactions with the application.
+Remediations
+- **Do** use an encoder to handle user input before incorporating it into the output stream. This step helps minimize the risk of XSS attacks by converting potentially dangerous characters into a safe format.
+  java
+  String userInput = req.getQueryString(""user"");
+  String encodedUserInput = Encode.forHtml(userInput);
+  response.getWriter().write(encodedUserInput);
+  
+- **Do** sanitize user input to remove or neutralize unwanted scripts. Sanitization goes beyond encoding by actively removing harmful content from user input before it is used in the output.
+  java
+  String userInput = req.getQueryString(""user"");
+  String sanitizedUserInput = sanitize(userInput);
+  response.getWriter().write(sanitizedUserInput);
+  
+References
+- OWASP XSS Prevention Cheatsheet
+- OWASP Java Encoder",https://docs.bearer.com/reference/rules/java_lang_xss_response_writer
+OUT017,EX009,java,xss,semgrep,java.lang.security.audit.xss.no-direct-response-writer.no-direct-response-writer,WARNING,80,13,"Detected a request with potential user-input going into a OutputStream or Writer object. This bypasses any view or template environments, including HTML escaping, which may expose this application to cross-site scripting (XSS) vulnerabilities. Consider using a view technology such as JavaServer Faces (JSFs) which automatically escapes HTML views.",,https://www3.ntu.edu.sg/home/ehchua/programming/java/JavaServerFaces.html
+OUT018,EX010,java,xss,codeql,java/xss,error,88,29,Cross-site scripting vulnerability due to a [user-provided value](1).,Writing user input directly to a web page allows for a cross-site scripting vulnerability.,
+OUT019,EX011,java,path-traversal,bearer,java_lang_path_using_user_input,high,56,,Unsanitized user input in file path,"Description
 Unsanitized user input in file path resolution can lead to security vulnerabilities. This issue arises when an application directly uses input from the user to determine file paths or names without proper validation or sanitization. Attackers can exploit this to access unauthorized files or directories, leading to data breaches or other security compromises.
 Remediations
 - **Do not** directly use user input in file paths without sanitization. This prevents attackers from manipulating file paths to access or manipulate unauthorized files.
@@ -97,9 +141,9 @@ Remediations
           File file = new File(""user/profile/"" + FilenameUtils.getName(image));
       }
   }",https://docs.bearer.com/reference/rules/java_lang_path_using_user_input
-OUT018,EX011,java,path-traversal,codeql,java/path-injection,error,49,67,This path depends on a [user-provided value](1).,Accessing paths influenced by users can allow an attacker to access unexpected resources.,
-OUT019,EX011,java,path-traversal,semgrep,java.lang.security.httpservlet-path-traversal.httpservlet-path-traversal,ERROR,49,47,"Detected a potential path traversal. A malicious actor could control the location of this file, to include going backwards in the directory with '../'. To address this, ensure that user-controlled variables in file paths are sanitized. You may also consider using a utility method such as org.apache.commons.io.FilenameUtils.getName(...) to only retrieve the file name from the path.",,https://www.owasp.org/index.php/Path_Traversal
-OUT020,EX012,java,path-traversal,bearer,java_lang_path_using_user_input,high,101,,Unsanitized user input in file path,"Description
+OUT020,EX011,java,path-traversal,codeql,java/path-injection,error,56,63,This path depends on a [user-provided value](1).,Accessing paths influenced by users can allow an attacker to access unexpected resources.,
+OUT021,EX011,java,path-traversal,semgrep,java.lang.security.httpservlet-path-traversal.httpservlet-path-traversal,ERROR,56,43,"Detected a potential path traversal. A malicious actor could control the location of this file, to include going backwards in the directory with '../'. To address this, ensure that user-controlled variables in file paths are sanitized. You may also consider using a utility method such as org.apache.commons.io.FilenameUtils.getName(...) to only retrieve the file name from the path.",,https://www.owasp.org/index.php/Path_Traversal
+OUT022,EX012,java,path-traversal,bearer,java_lang_path_using_user_input,high,101,,Unsanitized user input in file path,"Description
 Unsanitized user input in file path resolution can lead to security vulnerabilities. This issue arises when an application directly uses input from the user to determine file paths or names without proper validation or sanitization. Attackers can exploit this to access unauthorized files or directories, leading to data breaches or other security compromises.
 Remediations
 - **Do not** directly use user input in file paths without sanitization. This prevents attackers from manipulating file paths to access or manipulate unauthorized files.
@@ -114,13 +158,14 @@ Remediations
           File file = new File(""user/profile/"" + FilenameUtils.getName(image));
       }
   }",https://docs.bearer.com/reference/rules/java_lang_path_using_user_input
-OUT021,EX013,java,path-traversal,codeql,java/path-injection,error,112,76,This path depends on a [user-provided value](1).,Accessing paths influenced by users can allow an attacker to access unexpected resources.,
-OUT022,EX014,java,path-traversal,codeql,java/zipslip,error,79,53,"Unsanitized archive entry, which may contain '..', is used in a [file system operation](1).","Extracting files from a malicious ZIP file, or similar type of archive, without validating that the destination file path is within the destination directory can allow an attacker to unexpectedly gain access to resources.",
-OUT023,EX015,java,path-traversal,codeql,java/path-injection,error,74,29,"This path depends on a [user-provided value](1).
+OUT023,EX013,java,path-traversal,codeql,java/path-injection,error,81,24,"This path depends on a [user-provided value](1).
+This path depends on a [user-provided value](2).",Accessing paths influenced by users can allow an attacker to access unexpected resources.,
+OUT024,EX014,java,path-traversal,codeql,java/path-injection,error,72,41,"This path depends on a [user-provided value](1).
 This path depends on a [user-provided value](2).
 This path depends on a [user-provided value](3).
 This path depends on a [user-provided value](4).",Accessing paths influenced by users can allow an attacker to access unexpected resources.,
-OUT024,EX016,java,cmd-injection,bearer,java_lang_os_command_injection,critical,95,,Unsanitized user input in OS command,"Description
+OUT025,EX015,java,path-traversal,codeql,java/path-injection,error,50,17,This path depends on a [user-provided value](1).,Accessing paths influenced by users can allow an attacker to access unexpected resources.,
+OUT026,EX016,java,cmd-injection,bearer,java_lang_os_command_injection,critical,75,,Unsanitized user input in OS command,"Description
 Directly incorporating external or user-defined input into an OS command exposes the system to possible command injection attacks. This vulnerability allows attackers to execute unauthorized commands on the operating system, potentially leading to a compromise of system integrity.
 Remediations
 - **Do not** use OS commands that include dynamic input directly. Instead, explore safer alternatives such as libraries or built-in functions that achieve the same goal without executing system commands.
@@ -134,16 +179,28 @@ Remediations
   
 References
 - OWASP command injection explained",https://docs.bearer.com/reference/rules/java_lang_os_command_injection
-OUT025,EX016,java,cmd-injection,codeql,java/command-line-injection,error,95,32,This command line depends on a [user-provided value](1).,Using externally controlled strings in a command line is vulnerable to malicious changes in the strings.,
-OUT026,EX016,java,cmd-injection,semgrep,java.lang.security.audit.tainted-cmd-from-http-request.tainted-cmd-from-http-request,ERROR,95,13,"Detected input from a HTTPServletRequest going into a 'ProcessBuilder' or 'exec' command. This could lead to command injection if variables passed into the exec commands are not properly sanitized. Instead, avoid using these OS commands with user-supplied input, or, if you must use these commands, use a whitelist of specific values.",,https://owasp.org/Top10/A03_2021-Injection
-OUT027,EX017,java,cmd-injection,codeql,java/command-line-injection,error,54,53,This command line depends on a [user-provided value](1).,Using externally controlled strings in a command line is vulnerable to malicious changes in the strings.,
-OUT028,EX017,java,cmd-injection,semgrep,java.lang.security.audit.tainted-cmd-from-http-request.tainted-cmd-from-http-request,ERROR,54,9,"Detected input from a HTTPServletRequest going into a 'ProcessBuilder' or 'exec' command. This could lead to command injection if variables passed into the exec commands are not properly sanitized. Instead, avoid using these OS commands with user-supplied input, or, if you must use these commands, use a whitelist of specific values.",,https://owasp.org/Top10/A03_2021-Injection
-OUT029,EX018,java,cmd-injection,codeql,java/command-line-injection,error,71,32,This command line depends on a [user-provided value](1).,Using externally controlled strings in a command line is vulnerable to malicious changes in the strings.,
-OUT030,EX018,java,cmd-injection,semgrep,java.lang.security.audit.tainted-cmd-from-http-request.tainted-cmd-from-http-request,ERROR,71,13,"Detected input from a HTTPServletRequest going into a 'ProcessBuilder' or 'exec' command. This could lead to command injection if variables passed into the exec commands are not properly sanitized. Instead, avoid using these OS commands with user-supplied input, or, if you must use these commands, use a whitelist of specific values.",,https://owasp.org/Top10/A03_2021-Injection
-OUT031,EX019,java,cmd-injection,codeql,java/command-line-injection,error,43,53,This command line depends on a [user-provided value](1).,Using externally controlled strings in a command line is vulnerable to malicious changes in the strings.,
-OUT032,EX020,java,cmd-injection,codeql,java/exec-tainted-environment,error,58,37,This command will be execute with a tainted environment variable.,Passing environment variables containing externally controlled strings to a command line is vulnerable to malicious changes to the environment of a subprocess.,
-OUT033,EX020,java,cmd-injection,semgrep,java.lang.security.audit.tainted-cmd-from-http-request.tainted-cmd-from-http-request,ERROR,58,13,"Detected input from a HTTPServletRequest going into a 'ProcessBuilder' or 'exec' command. This could lead to command injection if variables passed into the exec commands are not properly sanitized. Instead, avoid using these OS commands with user-supplied input, or, if you must use these commands, use a whitelist of specific values.",,https://owasp.org/Top10/A03_2021-Injection
-OUT034,EX021,python,sqli,bearer,python_lang_sql_injection,critical,53,,Unsanitized external input in SQL query,"Description
+OUT027,EX016,java,cmd-injection,codeql,java/command-line-injection,error,75,32,This command line depends on a [user-provided value](1).,Using externally controlled strings in a command line is vulnerable to malicious changes in the strings.,
+OUT028,EX016,java,cmd-injection,semgrep,java.lang.security.audit.tainted-cmd-from-http-request.tainted-cmd-from-http-request,ERROR,75,13,"Detected input from a HTTPServletRequest going into a 'ProcessBuilder' or 'exec' command. This could lead to command injection if variables passed into the exec commands are not properly sanitized. Instead, avoid using these OS commands with user-supplied input, or, if you must use these commands, use a whitelist of specific values.",,https://owasp.org/Top10/A03_2021-Injection
+OUT029,EX017,java,cmd-injection,codeql,java/command-line-injection,error,49,53,This command line depends on a [user-provided value](1).,Using externally controlled strings in a command line is vulnerable to malicious changes in the strings.,
+OUT030,EX017,java,cmd-injection,semgrep,java.lang.security.audit.tainted-cmd-from-http-request.tainted-cmd-from-http-request,ERROR,49,9,"Detected input from a HTTPServletRequest going into a 'ProcessBuilder' or 'exec' command. This could lead to command injection if variables passed into the exec commands are not properly sanitized. Instead, avoid using these OS commands with user-supplied input, or, if you must use these commands, use a whitelist of specific values.",,https://owasp.org/Top10/A03_2021-Injection
+OUT031,EX018,java,cmd-injection,codeql,java/concatenated-command-line,error,63,53,Command line is built with string concatenation.,Using concatenated strings in a command line is vulnerable to malicious insertion of special characters in the strings.,
+OUT032,EX019,java,cmd-injection,semgrep,java.lang.security.audit.tainted-cmd-from-http-request.tainted-cmd-from-http-request,ERROR,62,9,"Detected input from a HTTPServletRequest going into a 'ProcessBuilder' or 'exec' command. This could lead to command injection if variables passed into the exec commands are not properly sanitized. Instead, avoid using these OS commands with user-supplied input, or, if you must use these commands, use a whitelist of specific values.",,https://owasp.org/Top10/A03_2021-Injection
+OUT033,EX020,java,cmd-injection,bearer,java_lang_os_command_injection,critical,64,,Unsanitized user input in OS command,"Description
+Directly incorporating external or user-defined input into an OS command exposes the system to possible command injection attacks. This vulnerability allows attackers to execute unauthorized commands on the operating system, potentially leading to a compromise of system integrity.
+Remediations
+- **Do not** use OS commands that include dynamic input directly. Instead, explore safer alternatives such as libraries or built-in functions that achieve the same goal without executing system commands.
+- **Do** use hardcoded values for any input that is incorporated into OS commands. This approach minimizes the risk by ensuring only predefined inputs are used, thus preventing attackers from injecting malicious commands.
+  java
+  String filePattern = ""*.json"";
+  if (""xml"".equals(request.getParameter(""format""))) {
+    filePattern = ""*.xml"";
+  }
+  Process process = Runtime.getRuntime().exec(""ls /myDir/"" + filePattern);
+  
+References
+- OWASP command injection explained",https://docs.bearer.com/reference/rules/java_lang_os_command_injection
+OUT034,EX020,java,cmd-injection,codeql,java/command-line-injection,error,64,28,This command line depends on a [user-provided value](1).,Using externally controlled strings in a command line is vulnerable to malicious changes in the strings.,
+OUT035,EX021,python,sqli,bearer,python_lang_sql_injection,critical,53,,Unsanitized external input in SQL query,"Description
 Using unsanitized data, such as user input or request data, or externally influenced data passed to a function, in SQL query exposes your application to SQL injection attacks. This vulnerability arises when externally controlled data is directly included in SQL statements without proper sanitation, allowing attackers to manipulate queries and access or modify data.
 Remediations
 - **Do not** include raw external input in SQL queries. This practice can lead to SQL injection vulnerabilities.
@@ -168,21 +225,76 @@ Remediations
 References
 - OWASP SQL injection explained
 - OWASP SQL injection prevention cheat sheet",https://docs.bearer.com/reference/rules/python_lang_sql_injection
-OUT035,EX021,python,sqli,codeql,py/sql-injection,error,53,15,This SQL query depends on a [user-provided value](1).,Building a SQL query from user-controlled sources is vulnerable to insertion of malicious SQL code by the user.,
-OUT036,EX021,python,sqli,semgrep,python.lang.security.audit.formatted-sql-query.formatted-sql-query,WARNING,53,5,Detected possible formatted SQL query. Use parameterized queries instead.,,https://stackoverflow.com/questions/775296/mysql-parameterized-queries
-OUT037,EX021,python,sqli,semgrep,python.sqlalchemy.security.sqlalchemy-execute-raw-query.sqlalchemy-execute-raw-query,ERROR,53,5,"Avoiding SQL string concatenation: untrusted input concatenated with raw SQL query can result in SQL Injection. In order to execute raw query safely, prepared statement should be used. SQLAlchemy provides TextualSQL to easily used prepared statement with named parameters. For complex SQL composition, use SQL Expression Language or Schema Definition Language. In most cases, SQLAlchemy ORM will be a better option.",,https://docs.sqlalchemy.org/en/14/core/tutorial.html#using-textual-sql
-OUT038,EX022,python,sqli,codeql,py/sql-injection,error,195,23,This SQL query depends on a [user-provided value](1).,Building a SQL query from user-controlled sources is vulnerable to insertion of malicious SQL code by the user.,
-OUT039,EX022,python,sqli,semgrep,python.lang.security.audit.formatted-sql-query.formatted-sql-query,WARNING,195,13,Detected possible formatted SQL query. Use parameterized queries instead.,,https://stackoverflow.com/questions/775296/mysql-parameterized-queries
-OUT040,EX022,python,sqli,semgrep,python.sqlalchemy.security.sqlalchemy-execute-raw-query.sqlalchemy-execute-raw-query,ERROR,195,13,"Avoiding SQL string concatenation: untrusted input concatenated with raw SQL query can result in SQL Injection. In order to execute raw query safely, prepared statement should be used. SQLAlchemy provides TextualSQL to easily used prepared statement with named parameters. For complex SQL composition, use SQL Expression Language or Schema Definition Language. In most cases, SQLAlchemy ORM will be a better option.",,https://docs.sqlalchemy.org/en/14/core/tutorial.html#using-textual-sql
-OUT041,EX022,python,sqli,semgrep,python.django.security.injection.tainted-sql-string.tainted-sql-string,ERROR,195,23,"Detected user input used to manually construct a SQL string. This is usually bad practice because manual construction could accidentally result in a SQL injection. An attacker could use a SQL injection to steal or modify contents of the database. Instead, use a parameterized query which is available by default in most database engines. Alternatively, consider using the Django object-relational mappers (ORM) instead of raw SQL queries.",,https://docs.djangoproject.com/en/3.0/topics/security/#sql-injection-protection
-OUT042,EX022,python,sqli,semgrep,python.flask.security.injection.tainted-sql-string.tainted-sql-string,ERROR,195,23,"Detected user input used to manually construct a SQL string. This is usually bad practice because manual construction could accidentally result in a SQL injection. An attacker could use a SQL injection to steal or modify contents of the database. Instead, use a parameterized query which is available by default in most database engines. Alternatively, consider using an object-relational mapper (ORM) such as SQLAlchemy which will protect your queries.",,https://docs.sqlalchemy.org/en/14/core/tutorial.html#using-textual-sql
-OUT043,EX023,python,sqli,semgrep,python.lang.security.audit.formatted-sql-query.formatted-sql-query,WARNING,32,1,Detected possible formatted SQL query. Use parameterized queries instead.,,https://stackoverflow.com/questions/775296/mysql-parameterized-queries
-OUT044,EX023,python,sqli,semgrep,python.sqlalchemy.security.sqlalchemy-execute-raw-query.sqlalchemy-execute-raw-query,ERROR,32,1,"Avoiding SQL string concatenation: untrusted input concatenated with raw SQL query can result in SQL Injection. In order to execute raw query safely, prepared statement should be used. SQLAlchemy provides TextualSQL to easily used prepared statement with named parameters. For complex SQL composition, use SQL Expression Language or Schema Definition Language. In most cases, SQLAlchemy ORM will be a better option.",,https://docs.sqlalchemy.org/en/14/core/tutorial.html#using-textual-sql
-OUT045,EX024,python,sqli,codeql,py/sql-injection,error,75,13,This SQL query depends on a [user-provided value](1).,Building a SQL query from user-controlled sources is vulnerable to insertion of malicious SQL code by the user.,
-OUT046,EX024,python,sqli,semgrep,python.django.security.injection.tainted-sql-string.tainted-sql-string,ERROR,75,13,"Detected user input used to manually construct a SQL string. This is usually bad practice because manual construction could accidentally result in a SQL injection. An attacker could use a SQL injection to steal or modify contents of the database. Instead, use a parameterized query which is available by default in most database engines. Alternatively, consider using the Django object-relational mappers (ORM) instead of raw SQL queries.",,https://docs.djangoproject.com/en/3.0/topics/security/#sql-injection-protection
-OUT047,EX025,python,sqli,semgrep,python.lang.security.audit.formatted-sql-query.formatted-sql-query,WARNING,20,9,Detected possible formatted SQL query. Use parameterized queries instead.,,https://stackoverflow.com/questions/775296/mysql-parameterized-queries
-OUT048,EX025,python,sqli,semgrep,python.sqlalchemy.security.sqlalchemy-execute-raw-query.sqlalchemy-execute-raw-query,ERROR,20,9,"Avoiding SQL string concatenation: untrusted input concatenated with raw SQL query can result in SQL Injection. In order to execute raw query safely, prepared statement should be used. SQLAlchemy provides TextualSQL to easily used prepared statement with named parameters. For complex SQL composition, use SQL Expression Language or Schema Definition Language. In most cases, SQLAlchemy ORM will be a better option.",,https://docs.sqlalchemy.org/en/14/core/tutorial.html#using-textual-sql
-OUT049,EX026,python,xss,bearer,python_django_response_using_user_input,high,80,,Unsanitized user input in output stream (XSS),"Description
+OUT036,EX021,python,sqli,codeql,py/sql-injection,error,53,15,This SQL query depends on a [user-provided value](1).,Building a SQL query from user-controlled sources is vulnerable to insertion of malicious SQL code by the user.,
+OUT037,EX021,python,sqli,semgrep,python.lang.security.audit.formatted-sql-query.formatted-sql-query,WARNING,53,5,Detected possible formatted SQL query. Use parameterized queries instead.,,https://stackoverflow.com/questions/775296/mysql-parameterized-queries
+OUT038,EX021,python,sqli,semgrep,python.sqlalchemy.security.sqlalchemy-execute-raw-query.sqlalchemy-execute-raw-query,ERROR,53,5,"Avoiding SQL string concatenation: untrusted input concatenated with raw SQL query can result in SQL Injection. In order to execute raw query safely, prepared statement should be used. SQLAlchemy provides TextualSQL to easily used prepared statement with named parameters. For complex SQL composition, use SQL Expression Language or Schema Definition Language. In most cases, SQLAlchemy ORM will be a better option.",,https://docs.sqlalchemy.org/en/14/core/tutorial.html#using-textual-sql
+OUT039,EX022,python,sqli,codeql,py/sql-injection,error,121,19,This SQL query depends on a [user-provided value](1).,Building a SQL query from user-controlled sources is vulnerable to insertion of malicious SQL code by the user.,
+OUT040,EX022,python,sqli,semgrep,python.lang.security.audit.formatted-sql-query.formatted-sql-query,WARNING,121,9,Detected possible formatted SQL query. Use parameterized queries instead.,,https://stackoverflow.com/questions/775296/mysql-parameterized-queries
+OUT041,EX022,python,sqli,semgrep,python.sqlalchemy.security.sqlalchemy-execute-raw-query.sqlalchemy-execute-raw-query,ERROR,121,9,"Avoiding SQL string concatenation: untrusted input concatenated with raw SQL query can result in SQL Injection. In order to execute raw query safely, prepared statement should be used. SQLAlchemy provides TextualSQL to easily used prepared statement with named parameters. For complex SQL composition, use SQL Expression Language or Schema Definition Language. In most cases, SQLAlchemy ORM will be a better option.",,https://docs.sqlalchemy.org/en/14/core/tutorial.html#using-textual-sql
+OUT042,EX023,python,sqli,semgrep,python.django.security.injection.tainted-sql-string.tainted-sql-string,ERROR,120,17,"Detected user input used to manually construct a SQL string. This is usually bad practice because manual construction could accidentally result in a SQL injection. An attacker could use a SQL injection to steal or modify contents of the database. Instead, use a parameterized query which is available by default in most database engines. Alternatively, consider using the Django object-relational mappers (ORM) instead of raw SQL queries.",,https://docs.djangoproject.com/en/3.0/topics/security/#sql-injection-protection
+OUT043,EX023,python,sqli,semgrep,python.flask.security.injection.tainted-sql-string.tainted-sql-string,ERROR,120,17,"Detected user input used to manually construct a SQL string. This is usually bad practice because manual construction could accidentally result in a SQL injection. An attacker could use a SQL injection to steal or modify contents of the database. Instead, use a parameterized query which is available by default in most database engines. Alternatively, consider using an object-relational mapper (ORM) such as SQLAlchemy which will protect your queries.",,https://docs.sqlalchemy.org/en/14/core/tutorial.html#using-textual-sql
+OUT044,EX024,python,sqli,bearer,python_django_sql_injection,critical,74,,Unsanitized external input in SQL query,"Description
+Using unsanitized data, such as user input or request data, or externally influenced data passed to a function, in SQL query exposes your application to SQL injection attacks. This vulnerability arises when externally controlled data is directly included in SQL statements without proper sanitation, allowing attackers to manipulate queries and access or modify data.
+Remediations
+- **Do not** include raw external input in SQL queries. This practice can lead to SQL injection vulnerabilities.
+  python
+  sorting_order = request.GET[""untrusted""]
+  query = f""SELECT id, name FROM products ORDER BY name LIMIT 20 {sorting_order};""; # unsafe
+  
+- **Do** validate all external input to ensure it meets the expected format before including it in SQL queries.
+  python
+  sorting_order = ""DESC"" if request.GET[""sortingOrder""] == ""DESC"" else ""ASC""
+  
+- **Do** use parameters for database queries to separate SQL logic from external input, significantly reducing the risk of SQL injection.
+  python
+  Product.objects.raw(""SELECT * FROM products WHERE id LIKE ?"", [f""%{product_id}%""])
+  
+- **Do** escape all external input using appropriate database-specific escaping functions before including it in SQL queries.
+  python
+  from mysql.connector.conversion import MySQLConverter
+  converter = MySQLConverter(connection)
+  ok = converter.escape(request.GET[""value""])
+  
+References
+- OWASP SQL injection explained
+- OWASP SQL injection prevention cheat sheet",https://docs.bearer.com/reference/rules/python_django_sql_injection
+OUT045,EX024,python,sqli,semgrep,python.django.security.audit.raw-query.avoid-raw-sql,WARNING,74,17,"Detected the use of 'RawSQL' or 'raw' indicating the execution of a non-parameterized SQL query. This could lead to a SQL injection and therefore protected information could be leaked. Instead, use Django ORM and parameterized queries before raw SQL. An example of using the Django ORM is: `People.objects.get(name='Bob')`",,https://docs.djangoproject.com/en/3.0/ref/models/expressions/#raw-sql-expressions
+OUT046,EX025,python,sqli,bearer,python_lang_sql_injection,critical,342,,Unsanitized external input in SQL query,"Description
+Using unsanitized data, such as user input or request data, or externally influenced data passed to a function, in SQL query exposes your application to SQL injection attacks. This vulnerability arises when externally controlled data is directly included in SQL statements without proper sanitation, allowing attackers to manipulate queries and access or modify data.
+Remediations
+- **Do not** include raw external input in SQL queries. This practice can lead to SQL injection vulnerabilities.
+  python
+  sorting_order = request.GET[""untrusted""]
+  query = f""SELECT id, name FROM products ORDER BY name LIMIT 20 {sorting_order};""; # unsafe
+  
+- **Do** validate all external input to ensure it meets the expected format before including it in SQL queries.
+  python
+  sorting_order = ""DESC"" if request.GET[""sortingOrder""] == ""DESC"" else ""ASC""
+  
+- **Do** use parameters for database queries to separate SQL logic from external input, significantly reducing the risk of SQL injection.
+  python
+  cursor.execute(""SELECT * FROM products WHERE id LIKE ?"", [f""%{product_id}%""])
+  
+- **Do** escape all external input using appropriate database-specific escaping functions before including it in SQL queries.
+  python
+  from mysql.connector.conversion import MySQLConverter
+  converter = MySQLConverter(connection)
+  ok = converter.escape(request.GET[""value""])
+  
+References
+- OWASP SQL injection explained
+- OWASP SQL injection prevention cheat sheet",https://docs.bearer.com/reference/rules/python_lang_sql_injection
+OUT047,EX025,python,sqli,codeql,py/sql-injection,error,342,28,"This SQL query depends on a [user-provided value](1).
+This SQL query depends on a [user-provided value](2).
+This SQL query depends on a [user-provided value](3).
+This SQL query depends on a [user-provided value](4).
+This SQL query depends on a [user-provided value](5).
+This SQL query depends on a [user-provided value](6).
+This SQL query depends on a [user-provided value](7).
+This SQL query depends on a [user-provided value](8).
+This SQL query depends on a [user-provided value](9).
+This SQL query depends on a [user-provided value](10).",Building a SQL query from user-controlled sources is vulnerable to insertion of malicious SQL code by the user.,
+OUT048,EX026,python,xss,bearer,python_django_response_using_user_input,high,80,,Unsanitized user input in output stream (XSS),"Description
 Cross-site scripting (XSS) vulnerabilities occur when unsanitized user input is included in web page content. This flaw can lead to malicious scripts being executed in the context of the user's browser, compromising the security of user data and interactions with the application.
 Remediations
 - **Do** use templating engines that automatically encode data based on its context.
@@ -200,14 +312,15 @@ Remediations
   
 References
 - OWASP XSS Prevention Cheatsheet",https://docs.bearer.com/reference/rules/python_django_response_using_user_input
-OUT050,EX026,python,xss,codeql,py/reflective-xss,error,80,33,Cross-site scripting vulnerability due to a [user-provided value](1).,Writing user input directly to a web page allows for a cross-site scripting vulnerability.,
-OUT051,EX026,python,xss,semgrep,python.django.security.audit.xss.direct-use-of-httpresponse.direct-use-of-httpresponse,WARNING,80,20,Detected data rendered directly to the end user via 'HttpResponse' or a similar object. This bypasses Django's built-in cross-site scripting (XSS) defenses and could result in an XSS vulnerability. Use Django's template engine to safely render HTML.,,https://docs.djangoproject.com/en/3.1/intro/tutorial03/#a-shortcut-render
-OUT052,EX027,python,xss,semgrep,python.django.security.audit.avoid-mark-safe.avoid-mark-safe,WARNING,114,9,"'mark_safe()' is used to mark a string as ""safe"" for HTML output. This disables escaping and could therefore subject the content to XSS attacks. Use 'django.utils.html.format_html()' to build HTML for rendering instead.",,https://docs.djangoproject.com/en/3.0/ref/utils/#django.utils.safestring.mark_safe
-OUT053,EX028,python,xss,codeql,py/code-injection,error,218,23,This code execution depends on a [user-provided value](1).,Interpreting unsanitized user input as code allows a malicious user to perform arbitrary code execution.,
-OUT054,EX029,python,xss,codeql,py/reflective-xss,error,75,25,Cross-site scripting vulnerability due to a [user-provided value](1).,Writing user input directly to a web page allows for a cross-site scripting vulnerability.,
-OUT055,EX029,python,xss,semgrep,python.django.security.audit.xss.direct-use-of-httpresponse.direct-use-of-httpresponse,WARNING,75,12,Detected data rendered directly to the end user via 'HttpResponse' or a similar object. This bypasses Django's built-in cross-site scripting (XSS) defenses and could result in an XSS vulnerability. Use Django's template engine to safely render HTML.,,https://docs.djangoproject.com/en/3.1/intro/tutorial03/#a-shortcut-render
-OUT056,EX030,python,xss,semgrep,python.django.security.audit.avoid-mark-safe.avoid-mark-safe,WARNING,62,5,"'mark_safe()' is used to mark a string as ""safe"" for HTML output. This disables escaping and could therefore subject the content to XSS attacks. Use 'django.utils.html.format_html()' to build HTML for rendering instead.",,https://docs.djangoproject.com/en/3.0/ref/utils/#django.utils.safestring.mark_safe
-OUT057,EX031,python,path-traversal,bearer,python_lang_path_traversal,high,8,,Unsanitized dynamic input in file path,"Description
+OUT049,EX026,python,xss,codeql,py/reflective-xss,error,80,33,Cross-site scripting vulnerability due to a [user-provided value](1).,Writing user input directly to a web page allows for a cross-site scripting vulnerability.,
+OUT050,EX026,python,xss,semgrep,python.django.security.audit.xss.direct-use-of-httpresponse.direct-use-of-httpresponse,WARNING,80,20,Detected data rendered directly to the end user via 'HttpResponse' or a similar object. This bypasses Django's built-in cross-site scripting (XSS) defenses and could result in an XSS vulnerability. Use Django's template engine to safely render HTML.,,https://docs.djangoproject.com/en/3.1/intro/tutorial03/#a-shortcut-render
+OUT051,EX027,python,xss,semgrep,python.django.security.audit.avoid-mark-safe.avoid-mark-safe,WARNING,59,5,"'mark_safe()' is used to mark a string as ""safe"" for HTML output. This disables escaping and could therefore subject the content to XSS attacks. Use 'django.utils.html.format_html()' to build HTML for rendering instead.",,https://docs.djangoproject.com/en/3.0/ref/utils/#django.utils.safestring.mark_safe
+OUT052,EX028,python,xss,codeql,py/code-injection,error,218,23,This code execution depends on a [user-provided value](1).,Interpreting unsanitized user input as code allows a malicious user to perform arbitrary code execution.,
+OUT053,EX029,python,xss,semgrep,python.flask.security.xss.audit.direct-use-of-jinja2.direct-use-of-jinja2,WARNING,23,1,"Detected direct use of jinja2. If not done properly, this may bypass HTML escaping which opens up the application to cross-site scripting (XSS) vulnerabilities. Prefer using the Flask method 'render_template()' and templates with a '.html' extension in order to prevent XSS.",,https://jinja.palletsprojects.com/en/2.11.x/api/#basics
+OUT054,EX030,python,xss,semgrep,python.django.security.audit.xss.direct-use-of-httpresponse.direct-use-of-httpresponse,WARNING,20,12,Detected data rendered directly to the end user via 'HttpResponse' or a similar object. This bypasses Django's built-in cross-site scripting (XSS) defenses and could result in an XSS vulnerability. Use Django's template engine to safely render HTML.,,https://docs.djangoproject.com/en/3.1/intro/tutorial03/#a-shortcut-render
+OUT055,EX031,python,path-traversal,codeql,py/path-injection,error,34,50,This path depends on a [user-provided value](1).,Accessing paths influenced by users can allow an attacker to access unexpected resources.,
+OUT056,EX032,python,path-traversal,codeql,py/tarslip,error,8,5,This file extraction depends on a [potentially untrusted source](1).,Extracting files from a malicious tar archive without validating that the destination file path is within the destination directory can cause files outside the destination directory to be overwritten.,
+OUT057,EX033,python,path-traversal,bearer,python_lang_path_traversal,high,18,,Unsanitized dynamic input in file path,"Description
 Using unsanitized dynamic input to determine file paths can allow attackers to gain access to files and folders outside of the intended scope. This vulnerability occurs when input provided by users is directly used to access the filesystem without proper validation or sanitization.
 Remediations
 - **Do not** directly use external input to construct file paths. This can lead to unauthorized file access.
@@ -221,8 +334,7 @@ Remediations
    
 References
 - OWASP Path Traversal",https://docs.bearer.com/reference/rules/python_lang_path_traversal
-OUT058,EX031,python,path-traversal,codeql,py/path-injection,error,8,21,This path depends on a [user-provided value](1).,Accessing paths influenced by users can allow an attacker to access unexpected resources.,
-OUT059,EX032,python,path-traversal,bearer,python_lang_path_traversal,high,22,,Unsanitized dynamic input in file path,"Description
+OUT058,EX034,python,path-traversal,bearer,python_lang_path_traversal,high,7,,Unsanitized dynamic input in file path,"Description
 Using unsanitized dynamic input to determine file paths can allow attackers to gain access to files and folders outside of the intended scope. This vulnerability occurs when input provided by users is directly used to access the filesystem without proper validation or sanitization.
 Remediations
 - **Do not** directly use external input to construct file paths. This can lead to unauthorized file access.
@@ -236,9 +348,7 @@ Remediations
    
 References
 - OWASP Path Traversal",https://docs.bearer.com/reference/rules/python_lang_path_traversal
-OUT060,EX032,python,path-traversal,codeql,py/path-injection,error,22,5,"This path depends on a [user-provided value](1).
-This path depends on a [user-provided value](2).",Accessing paths influenced by users can allow an attacker to access unexpected resources.,
-OUT061,EX033,python,path-traversal,bearer,python_lang_path_traversal,high,7,,Unsanitized dynamic input in file path,"Description
+OUT059,EX035,python,path-traversal,bearer,python_lang_path_traversal,high,41,,Unsanitized dynamic input in file path,"Description
 Using unsanitized dynamic input to determine file paths can allow attackers to gain access to files and folders outside of the intended scope. This vulnerability occurs when input provided by users is directly used to access the filesystem without proper validation or sanitization.
 Remediations
 - **Do not** directly use external input to construct file paths. This can lead to unauthorized file access.
@@ -252,60 +362,33 @@ Remediations
    
 References
 - OWASP Path Traversal",https://docs.bearer.com/reference/rules/python_lang_path_traversal
-OUT062,EX034,python,path-traversal,bearer,python_lang_path_traversal,high,33,,Unsanitized dynamic input in file path,"Description
-Using unsanitized dynamic input to determine file paths can allow attackers to gain access to files and folders outside of the intended scope. This vulnerability occurs when input provided by users is directly used to access the filesystem without proper validation or sanitization.
-Remediations
-- **Do not** directly use external input to construct file paths. This can lead to unauthorized file access.
-- **Do** use a safelist to define accessible paths or directories. Only allow user input to influence file paths within these predefined, safe boundaries.
-- **Do** use absolute path checks to confirm that the constructed path is within the expected directory
-    python
-    BASE_DIRECTORY = '/path/to/safe/directory'
-    my_path = os.path.abspath(os.path.join(BASE_DIRECTORY, dynamic_input))
-    if my_path.startswith(BASE_DIRECTORY):
-      open(my_path)
-   
-References
-- OWASP Path Traversal",https://docs.bearer.com/reference/rules/python_lang_path_traversal
-OUT063,EX035,python,path-traversal,bearer,python_lang_path_traversal,high,18,,Unsanitized dynamic input in file path,"Description
-Using unsanitized dynamic input to determine file paths can allow attackers to gain access to files and folders outside of the intended scope. This vulnerability occurs when input provided by users is directly used to access the filesystem without proper validation or sanitization.
-Remediations
-- **Do not** directly use external input to construct file paths. This can lead to unauthorized file access.
-- **Do** use a safelist to define accessible paths or directories. Only allow user input to influence file paths within these predefined, safe boundaries.
-- **Do** use absolute path checks to confirm that the constructed path is within the expected directory
-    python
-    BASE_DIRECTORY = '/path/to/safe/directory'
-    my_path = os.path.abspath(os.path.join(BASE_DIRECTORY, dynamic_input))
-    if my_path.startswith(BASE_DIRECTORY):
-      open(my_path)
-   
-References
-- OWASP Path Traversal",https://docs.bearer.com/reference/rules/python_lang_path_traversal
-OUT064,EX036,python,cmd-injection,bearer,python_lang_os_command_injection,critical,233,,Unsanitized user input in OS command,"Description
+OUT060,EX036,python,cmd-injection,bearer,python_lang_os_command_injection,critical,233,,Unsanitized user input in OS command,"Description
 Directly incorporating external or user-defined input into an OS command exposes the system to possible command injection attacks. This vulnerability allows attackers to execute unauthorized commands on the operating system, potentially leading to a compromise of system integrity.
 Remediations
 - **Do not** use OS commands that include dynamic input directly. Instead, explore safer alternatives such as libraries or built-in functions that achieve the same goal without executing system commands. 
 - **Do** use hardcoded values for any input that is incorporated into OS commands. This approach minimizes the risk by ensuring only predefined inputs are used, thus preventing attackers from injecting malicious commands. Use safe lists or dictionaries if you need to be dynamic. 
 References
 - OWASP command injection explained",https://docs.bearer.com/reference/rules/python_lang_os_command_injection
-OUT065,EX036,python,cmd-injection,codeql,py/command-line-injection,error,233,32,This command line depends on a [user-provided value](1).,Using externally controlled strings in a command line may allow a malicious user to change the meaning of the command.,
-OUT066,EX036,python,cmd-injection,semgrep,python.lang.security.audit.subprocess-shell-true.subprocess-shell-true,ERROR,233,47,"Found 'subprocess' function 'Popen' with 'shell=True'. This is dangerous because this call will spawn the command using a shell process. Doing so propagates current shell settings and variables, which makes it much easier for a malicious actor to execute commands. Use 'shell=False' instead.",,https://stackoverflow.com/questions/3172470/actual-meaning-of-shell-true-in-subprocess
-OUT067,EX037,python,cmd-injection,bearer,python_lang_os_command_injection,critical,21,,Unsanitized user input in OS command,"Description
+OUT061,EX036,python,cmd-injection,codeql,py/command-line-injection,error,233,32,This command line depends on a [user-provided value](1).,Using externally controlled strings in a command line may allow a malicious user to change the meaning of the command.,
+OUT062,EX036,python,cmd-injection,semgrep,python.lang.security.audit.subprocess-shell-true.subprocess-shell-true,ERROR,233,47,"Found 'subprocess' function 'Popen' with 'shell=True'. This is dangerous because this call will spawn the command using a shell process. Doing so propagates current shell settings and variables, which makes it much easier for a malicious actor to execute commands. Use 'shell=False' instead.",,https://stackoverflow.com/questions/3172470/actual-meaning-of-shell-true-in-subprocess
+OUT063,EX037,python,cmd-injection,bearer,python_lang_os_command_injection,critical,21,,Unsanitized user input in OS command,"Description
 Directly incorporating external or user-defined input into an OS command exposes the system to possible command injection attacks. This vulnerability allows attackers to execute unauthorized commands on the operating system, potentially leading to a compromise of system integrity.
 Remediations
 - **Do not** use OS commands that include dynamic input directly. Instead, explore safer alternatives such as libraries or built-in functions that achieve the same goal without executing system commands. 
 - **Do** use hardcoded values for any input that is incorporated into OS commands. This approach minimizes the risk by ensuring only predefined inputs are used, thus preventing attackers from injecting malicious commands. Use safe lists or dictionaries if you need to be dynamic. 
 References
 - OWASP command injection explained",https://docs.bearer.com/reference/rules/python_lang_os_command_injection
-OUT068,EX038,python,cmd-injection,semgrep,python.lang.security.audit.subprocess-shell-true.subprocess-shell-true,ERROR,52,32,"Found 'subprocess' function 'call' with 'shell=True'. This is dangerous because this call will spawn the command using a shell process. Doing so propagates current shell settings and variables, which makes it much easier for a malicious actor to execute commands. Use 'shell=False' instead.",,https://stackoverflow.com/questions/3172470/actual-meaning-of-shell-true-in-subprocess
-OUT069,EX039,python,cmd-injection,semgrep,python.lang.security.audit.subprocess-shell-true.subprocess-shell-true,ERROR,37,55,"Found 'subprocess' function 'Popen' with 'shell=True'. This is dangerous because this call will spawn the command using a shell process. Doing so propagates current shell settings and variables, which makes it much easier for a malicious actor to execute commands. Use 'shell=False' instead.",,https://stackoverflow.com/questions/3172470/actual-meaning-of-shell-true-in-subprocess
-OUT070,EX040,python,cmd-injection,bearer,python_lang_os_command_injection,critical,50,,Unsanitized user input in OS command,"Description
+OUT064,EX038,python,cmd-injection,semgrep,python.lang.security.audit.subprocess-shell-true.subprocess-shell-true,ERROR,38,58,"Found 'subprocess' function 'Popen' with 'shell=True'. This is dangerous because this call will spawn the command using a shell process. Doing so propagates current shell settings and variables, which makes it much easier for a malicious actor to execute commands. Use 'shell=False' instead.",,https://stackoverflow.com/questions/3172470/actual-meaning-of-shell-true-in-subprocess
+OUT065,EX039,python,cmd-injection,bearer,python_lang_os_command_injection,critical,81,,Unsanitized user input in OS command,"Description
 Directly incorporating external or user-defined input into an OS command exposes the system to possible command injection attacks. This vulnerability allows attackers to execute unauthorized commands on the operating system, potentially leading to a compromise of system integrity.
 Remediations
 - **Do not** use OS commands that include dynamic input directly. Instead, explore safer alternatives such as libraries or built-in functions that achieve the same goal without executing system commands. 
 - **Do** use hardcoded values for any input that is incorporated into OS commands. This approach minimizes the risk by ensuring only predefined inputs are used, thus preventing attackers from injecting malicious commands. Use safe lists or dictionaries if you need to be dynamic. 
 References
 - OWASP command injection explained",https://docs.bearer.com/reference/rules/python_lang_os_command_injection
-OUT071,EX041,javascript,sqli,bearer,javascript_lang_sql_injection,critical,34,,Unsanitized input in SQL query,"Description
+OUT066,EX039,python,cmd-injection,semgrep,python.django.security.injection.command.subprocess-injection.subprocess-injection,ERROR,81,19,"Detected user input entering a `subprocess` call unsafely. This could result in a command injection vulnerability. An attacker could use this vulnerability to execute arbitrary commands on the host, which allows them to download malware, scan sensitive data, or run any command they wish on the server. Do not let users choose the command to run. In general, prefer to use Python API versions of system commands. If you must use subprocess, use a dictionary to allowlist a set of commands.",,https://semgrep.dev/docs/cheat-sheets/python-command-injection/
+OUT067,EX040,python,cmd-injection,semgrep,python.lang.security.audit.subprocess-shell-true.subprocess-shell-true,ERROR,37,55,"Found 'subprocess' function 'Popen' with 'shell=True'. This is dangerous because this call will spawn the command using a shell process. Doing so propagates current shell settings and variables, which makes it much easier for a malicious actor to execute commands. Use 'shell=False' instead.",,https://stackoverflow.com/questions/3172470/actual-meaning-of-shell-true-in-subprocess
+OUT068,EX041,javascript,sqli,bearer,javascript_lang_sql_injection,critical,34,,Unsanitized input in SQL query,"Description
 Using unsanitized data, such as user input or request data, or externally influenced data passed to a function, in SQL query exposes your application to SQL injection attacks. This vulnerability arises when externally controlled data is directly included in SQL statements without proper sanitation, allowing attackers to manipulate queries and access or modify data.
 Remediations
 - **Do not** use raw SQL queries that concatenate unsanitized input directly.
@@ -332,10 +415,10 @@ Remediations
 References
 - OWASP SQL injection explained
 - OWASP SQL injection prevention cheat sheet",https://docs.bearer.com/reference/rules/javascript_lang_sql_injection
-OUT072,EX041,javascript,sqli,codeql,js/sql-injection,error,34,28,"This query string depends on a [user-provided value](1).
+OUT069,EX041,javascript,sqli,codeql,js/sql-injection,error,34,28,"This query string depends on a [user-provided value](1).
 This query string depends on a [user-provided value](2).",Building a database query from user-controlled sources is vulnerable to insertion of malicious code by the user.,
-OUT073,EX041,javascript,sqli,semgrep,javascript.sequelize.security.audit.sequelize-injection-express.express-sequelize-injection,ERROR,34,28,"Detected a sequelize statement that is tainted by user-input. This could lead to SQL injection if the variable is user-controlled and is not properly sanitized. In order to prevent SQL injection, it is recommended to use parameterized queries or prepared statements.",,https://sequelize.org/docs/v6/core-concepts/raw-queries/#replacements
-OUT074,EX042,javascript,sqli,bearer,javascript_lang_sql_injection,critical,58,,Unsanitized input in SQL query,"Description
+OUT070,EX041,javascript,sqli,semgrep,javascript.sequelize.security.audit.sequelize-injection-express.express-sequelize-injection,ERROR,34,28,"Detected a sequelize statement that is tainted by user-input. This could lead to SQL injection if the variable is user-controlled and is not properly sanitized. In order to prevent SQL injection, it is recommended to use parameterized queries or prepared statements.",,https://sequelize.org/docs/v6/core-concepts/raw-queries/#replacements
+OUT071,EX042,javascript,sqli,bearer,javascript_lang_sql_injection,critical,58,,Unsanitized input in SQL query,"Description
 Using unsanitized data, such as user input or request data, or externally influenced data passed to a function, in SQL query exposes your application to SQL injection attacks. This vulnerability arises when externally controlled data is directly included in SQL statements without proper sanitation, allowing attackers to manipulate queries and access or modify data.
 Remediations
 - **Do not** use raw SQL queries that concatenate unsanitized input directly.
@@ -362,7 +445,9 @@ Remediations
 References
 - OWASP SQL injection explained
 - OWASP SQL injection prevention cheat sheet",https://docs.bearer.com/reference/rules/javascript_lang_sql_injection
-OUT075,EX043,javascript,sqli,bearer,javascript_lang_sql_injection,critical,11,,Unsanitized input in SQL query,"Description
+OUT072,EX043,javascript,sqli,codeql,js/sql-injection,error,91,26,This query object depends on a [user-provided value](1).,Building a database query from user-controlled sources is vulnerable to insertion of malicious code by the user.,
+OUT073,EX044,javascript,sqli,codeql,js/sql-injection,error,104,26,This query object depends on a [user-provided value](1).,Building a database query from user-controlled sources is vulnerable to insertion of malicious code by the user.,
+OUT074,EX045,javascript,sqli,bearer,javascript_lang_sql_injection,critical,11,,Unsanitized input in SQL query,"Description
 Using unsanitized data, such as user input or request data, or externally influenced data passed to a function, in SQL query exposes your application to SQL injection attacks. This vulnerability arises when externally controlled data is directly included in SQL statements without proper sanitation, allowing attackers to manipulate queries and access or modify data.
 Remediations
 - **Do not** use raw SQL queries that concatenate unsanitized input directly.
@@ -389,23 +474,9 @@ Remediations
 References
 - OWASP SQL injection explained
 - OWASP SQL injection prevention cheat sheet",https://docs.bearer.com/reference/rules/javascript_lang_sql_injection
-OUT076,EX043,javascript,sqli,codeql,js/sql-injection,error,11,21,This query string depends on a [user-provided value](1).,Building a database query from user-controlled sources is vulnerable to insertion of malicious code by the user.,
-OUT077,EX043,javascript,sqli,semgrep,javascript.sequelize.security.audit.sequelize-injection-express.express-sequelize-injection,ERROR,11,21,"Detected a sequelize statement that is tainted by user-input. This could lead to SQL injection if the variable is user-controlled and is not properly sanitized. In order to prevent SQL injection, it is recommended to use parameterized queries or prepared statements.",,https://sequelize.org/docs/v6/core-concepts/raw-queries/#replacements
-OUT078,EX044,javascript,sqli,codeql,js/sql-injection,error,91,26,This query object depends on a [user-provided value](1).,Building a database query from user-controlled sources is vulnerable to insertion of malicious code by the user.,
-OUT079,EX045,javascript,sqli,codeql,js/sql-injection,error,18,7,"This query object depends on a [user-provided value](1).
-This query object depends on a [user-provided value](2).",Building a database query from user-controlled sources is vulnerable to insertion of malicious code by the user.,
-OUT080,EX046,javascript,xss,bearer,javascript_lang_dangerous_insert_html,high,3,,Unsanitized user input in dynamic HTML insertion (XSS),"Description
-Unsanitized user input in dynamic HTML insertion can lead to Cross-Site Scripting (XSS) attacks. This vulnerability arises when user-provided data is directly inserted into the DOM without proper sanitization, potentially allowing attackers to execute malicious scripts.
-Remediations
-- **Do** use an HTML sanitization library to clean user input before inserting it into the HTML. This step helps prevent XSS attacks by removing or neutralizing any potentially harmful scripts.
-  javascript
-  import sanitizeHtml from 'sanitize-html';
-  const html = <strong>${user.Input}</strong>;
-  document.body.innerHTML = sanitizeHtml(html);
-  
-References
-- OWASP XSS explained",https://docs.bearer.com/reference/rules/javascript_lang_dangerous_insert_html
-OUT081,EX047,javascript,xss,bearer,javascript_react_dangerously_set_inner_html,high,132,,Unsanitized user input in React inner HTML method (XSS),"Description
+OUT075,EX045,javascript,sqli,codeql,js/sql-injection,error,11,21,This query string depends on a [user-provided value](1).,Building a database query from user-controlled sources is vulnerable to insertion of malicious code by the user.,
+OUT076,EX045,javascript,sqli,semgrep,javascript.sequelize.security.audit.sequelize-injection-express.express-sequelize-injection,ERROR,11,21,"Detected a sequelize statement that is tainted by user-input. This could lead to SQL injection if the variable is user-controlled and is not properly sanitized. In order to prevent SQL injection, it is recommended to use parameterized queries or prepared statements.",,https://sequelize.org/docs/v6/core-concepts/raw-queries/#replacements
+OUT077,EX046,javascript,xss,bearer,javascript_react_dangerously_set_inner_html,high,132,,Unsanitized user input in React inner HTML method (XSS),"Description
 Using React's dangerouslySetInnerHTML with unsanitized data can introduce Cross-Site Scripting (XSS) vulnerabilities. This occurs when external input is embedded directly into the HTML without proper sanitization, allowing attackers to inject malicious scripts.
 Remediations
 - **Do** sanitize data before using it with dangerouslySetInnerHTML. This step is crucial to prevent XSS attacks by ensuring that the input does not contain harmful scripts.
@@ -413,45 +484,20 @@ javascript
 <div dangerouslySetInnerHTML={{__html: sanitize(data)}} />
 References
 - OWASP Cross-Site Scripting (XSS) Cheatsheet",https://docs.bearer.com/reference/rules/javascript_react_dangerously_set_inner_html
-OUT082,EX047,javascript,xss,codeql,js/xss-through-dom,warning,132,52,[DOM text](1) is reinterpreted as HTML without escaping meta-characters.,Reinterpreting text from the DOM as HTML can lead to a cross-site scripting vulnerability.,
-OUT083,EX048,javascript,xss,codeql,js/reflected-xss,error,29,12,Cross-site scripting vulnerability due to a [user-provided value](1).,Writing user input directly to an HTTP response allows for a cross-site scripting vulnerability.,
-OUT084,EX049,javascript,xss,codeql,js/xss-through-exception,warning,49,20,"[Exception text](1) is reinterpreted as HTML without escaping meta-characters.
-[Exception text](2) is reinterpreted as HTML without escaping meta-characters.",Reinterpreting text from an exception as HTML can lead to a cross-site scripting vulnerability.,
-OUT085,EX050,javascript,xss,semgrep,javascript.express.security.audit.xss.ejs.explicit-unescape.template-explicit-unescape,WARNING,49,21,"Detected an explicit unescape in an EJS template, using '<%- ... %>' If external data can reach these locations, your application is exposed to a cross-site scripting (XSS) vulnerability. Use '<%= ... %>' to escape this data. If you need escaping, ensure no external data can reach this location.",,http://www.managerjs.com/blog/2015/05/will-ejs-escape-save-me-from-xss-sorta/
-OUT086,EX051,javascript,path-traversal,bearer,javascript_express_external_file_upload,high,14,,Unsanitized user input in HTTP send file request,"Description
-Using unsanitized user input in the sendFile API call exposes your application to path manipulation attacks. This vulnerability allows attackers to access files and resources they shouldn't be able to, by manipulating file paths in requests.
+OUT078,EX046,javascript,xss,codeql,js/xss-through-dom,warning,132,52,[DOM text](1) is reinterpreted as HTML without escaping meta-characters.,Reinterpreting text from the DOM as HTML can lead to a cross-site scripting vulnerability.,
+OUT079,EX047,javascript,xss,bearer,javascript_react_dangerously_set_inner_html,high,172,,Unsanitized user input in React inner HTML method (XSS),"Description
+Using React's dangerouslySetInnerHTML with unsanitized data can introduce Cross-Site Scripting (XSS) vulnerabilities. This occurs when external input is embedded directly into the HTML without proper sanitization, allowing attackers to inject malicious scripts.
 Remediations
-- **Do** set the root option to an absolute path to a directory when using sendFile. This confines the accessible files to a specific directory, preventing attackers from accessing files outside of this directory.
-  javascript
-  app.post(""/upload"", (req, res) => {
-    var options = {
-      root: path.join(__dirname, ""upload"")
-    };
-    res.sendFile(req.params.filename, options);
-  });
-  
+- **Do** sanitize data before using it with dangerouslySetInnerHTML. This step is crucial to prevent XSS attacks by ensuring that the input does not contain harmful scripts.
+javascript
+<div dangerouslySetInnerHTML={{__html: sanitize(data)}} />
 References
-- Express sendFile API reference",https://docs.bearer.com/reference/rules/javascript_express_external_file_upload
-OUT087,EX051,javascript,path-traversal,bearer,javascript_express_path_traversal,high,14,,Unsanitized user input in file path,"Description
-Using unsanitized user input to construct file paths can allow attackers to access files and directories beyond the intended limits. This vulnerability, known as path traversal, poses a significant security risk.
-Remediations
-- **Do not** directly use user input in file path construction. This can lead to unauthorized file access.
-- **Do** sanitize user input before using it in path resolution. Replace or remove dangerous patterns like \..\.. to prevent directory traversal attacks.
-  javascript
-  var sanitizedPath = userInput.replace(/^(\.\.(\/|\\|$))+/, '');
-  
-- **Do** check for and eliminate any instances of the poison NULL byte (""%00"") in user input, as it can be used to bypass path sanitization.
-  javascript
-  if (userInput.indexOf('\0') !== -1) {
-    // Handle or reject the input
-  }
-  
-- **Do** validate the final path to ensure it is within the intended scope before accessing the file system.
-References
-- OWASP Path Traversal",https://docs.bearer.com/reference/rules/javascript_express_path_traversal
-OUT088,EX051,javascript,path-traversal,codeql,js/path-injection,error,14,20,This path depends on a [user-provided value](1).,Accessing paths influenced by users can allow an attacker to access unexpected resources.,
-OUT089,EX051,javascript,path-traversal,semgrep,javascript.express.security.audit.express-res-sendfile.express-res-sendfile,WARNING,14,20,"The application processes user-input, this is passed to res.sendFile which can allow an attacker to arbitrarily read files on the system through path traversal. It is recommended to perform input validation in addition to canonicalizing the path. This allows you to validate the path against the intended directory it should be accessing.",,https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html
-OUT090,EX052,javascript,path-traversal,bearer,javascript_lang_path_traversal,high,43,,Unsanitized dynamic input in file path,"Description
+- OWASP Cross-Site Scripting (XSS) Cheatsheet",https://docs.bearer.com/reference/rules/javascript_react_dangerously_set_inner_html
+OUT080,EX048,javascript,xss,codeql,js/xss,error,17,55,Cross-site scripting vulnerability due to [user-provided value](1).,Writing user input directly to the DOM allows for a cross-site scripting vulnerability.,
+OUT081,EX048,javascript,xss,semgrep,javascript.express.security.audit.xss.ejs.explicit-unescape.template-explicit-unescape,WARNING,17,55,"Detected an explicit unescape in an EJS template, using '<%- ... %>' If external data can reach these locations, your application is exposed to a cross-site scripting (XSS) vulnerability. Use '<%= ... %>' to escape this data. If you need escaping, ensure no external data can reach this location.",,http://www.managerjs.com/blog/2015/05/will-ejs-escape-save-me-from-xss-sorta/
+OUT082,EX049,javascript,xss,codeql,js/code-injection,error,32,29,This code execution depends on a [user-provided value](1).,Interpreting unsanitized user input as code allows a malicious user arbitrary code execution.,
+OUT083,EX050,javascript,xss,codeql,js/xss-through-exception,warning,144,22,[Exception text](1) is reinterpreted as HTML without escaping meta-characters.,Reinterpreting text from an exception as HTML can lead to a cross-site scripting vulnerability.,
+OUT084,EX051,javascript,path-traversal,bearer,javascript_lang_path_traversal,high,33,,Unsanitized dynamic input in file path,"Description
 Using unsanitized dynamic input to determine file paths can allow attackers to gain access to files and folders outside of the intended scope. This vulnerability occurs when input provided by users is directly used to access the filesystem without proper validation or sanitization.
 Remediations
 - **Do not** directly use user input to construct file paths. This can lead to unauthorized file access.
@@ -475,8 +521,43 @@ Remediations
   
 References
 - OWASP Path Traversal",https://docs.bearer.com/reference/rules/javascript_lang_path_traversal
-OUT091,EX052,javascript,path-traversal,semgrep,javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal,WARNING,43,55,"Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first.",,https://owasp.org/www-community/attacks/Path_Traversal
-OUT092,EX053,javascript,path-traversal,bearer,javascript_lang_non_literal_fs_filename,high,55,,Unsanitized dynamic input in file path,"Description
+OUT085,EX051,javascript,path-traversal,codeql,js/path-injection,error,33,20,This path depends on a [user-provided value](1).,Accessing paths influenced by users can allow an attacker to access unexpected resources.,
+OUT086,EX051,javascript,path-traversal,semgrep,javascript.express.security.audit.express-res-sendfile.express-res-sendfile,WARNING,33,20,"The application processes user-input, this is passed to res.sendFile which can allow an attacker to arbitrarily read files on the system through path traversal. It is recommended to perform input validation in addition to canonicalizing the path. This allows you to validate the path against the intended directory it should be accessing.",,https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html
+OUT087,EX052,javascript,path-traversal,bearer,javascript_express_external_file_upload,high,14,,Unsanitized user input in HTTP send file request,"Description
+Using unsanitized user input in the sendFile API call exposes your application to path manipulation attacks. This vulnerability allows attackers to access files and resources they shouldn't be able to, by manipulating file paths in requests.
+Remediations
+- **Do** set the root option to an absolute path to a directory when using sendFile. This confines the accessible files to a specific directory, preventing attackers from accessing files outside of this directory.
+  javascript
+  app.post(""/upload"", (req, res) => {
+    var options = {
+      root: path.join(__dirname, ""upload"")
+    };
+    res.sendFile(req.params.filename, options);
+  });
+  
+References
+- Express sendFile API reference",https://docs.bearer.com/reference/rules/javascript_express_external_file_upload
+OUT088,EX052,javascript,path-traversal,bearer,javascript_express_path_traversal,high,14,,Unsanitized user input in file path,"Description
+Using unsanitized user input to construct file paths can allow attackers to access files and directories beyond the intended limits. This vulnerability, known as path traversal, poses a significant security risk.
+Remediations
+- **Do not** directly use user input in file path construction. This can lead to unauthorized file access.
+- **Do** sanitize user input before using it in path resolution. Replace or remove dangerous patterns like \..\.. to prevent directory traversal attacks.
+  javascript
+  var sanitizedPath = userInput.replace(/^(\.\.(\/|\\|$))+/, '');
+  
+- **Do** check for and eliminate any instances of the poison NULL byte (""%00"") in user input, as it can be used to bypass path sanitization.
+  javascript
+  if (userInput.indexOf('\0') !== -1) {
+    // Handle or reject the input
+  }
+  
+- **Do** validate the final path to ensure it is within the intended scope before accessing the file system.
+References
+- OWASP Path Traversal",https://docs.bearer.com/reference/rules/javascript_express_path_traversal
+OUT089,EX052,javascript,path-traversal,codeql,js/path-injection,error,14,20,This path depends on a [user-provided value](1).,Accessing paths influenced by users can allow an attacker to access unexpected resources.,
+OUT090,EX052,javascript,path-traversal,semgrep,javascript.express.security.audit.express-res-sendfile.express-res-sendfile,WARNING,14,20,"The application processes user-input, this is passed to res.sendFile which can allow an attacker to arbitrarily read files on the system through path traversal. It is recommended to perform input validation in addition to canonicalizing the path. This allows you to validate the path against the intended directory it should be accessing.",,https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html
+OUT091,EX053,javascript,path-traversal,codeql,js/path-injection,error,78,23,This path depends on a [user-provided value](1).,Accessing paths influenced by users can allow an attacker to access unexpected resources.,
+OUT092,EX054,javascript,path-traversal,bearer,javascript_lang_non_literal_fs_filename,high,37,,Unsanitized dynamic input in file path,"Description
 Allowing unsanitized dynamic input in file paths can lead to unauthorized file and folder access. This vulnerability arises when dynamic data is used within the file system operations, potentially allowing attackers to access unauthorized or hidden files and folders.
 Remediations
 - **Do** sanitize all dynamic data and function arguments before using them in file system operations. This step is crucial to prevent unauthorized access.
@@ -493,29 +574,19 @@ Remediations
   
 References
 - OWASP path traversal",https://docs.bearer.com/reference/rules/javascript_lang_non_literal_fs_filename
-OUT093,EX054,javascript,path-traversal,codeql,js/path-injection,error,78,23,This path depends on a [user-provided value](1).,Accessing paths influenced by users can allow an attacker to access unexpected resources.,
-OUT094,EX055,javascript,path-traversal,bearer,javascript_lang_non_literal_fs_filename,high,37,,Unsanitized dynamic input in file path,"Description
-Allowing unsanitized dynamic input in file paths can lead to unauthorized file and folder access. This vulnerability arises when dynamic data is used within the file system operations, potentially allowing attackers to access unauthorized or hidden files and folders.
+OUT093,EX055,javascript,path-traversal,codeql,js/template-object-injection,error,120,38,Template object depends on a [user-provided value](1).,Instantiating a template using a user-controlled object is vulnerable to local file read and potential remote code execution.,
+OUT094,EX056,javascript,cmd-injection,bearer,javascript_lang_dynamic_os_command,critical,78,,Unsanitized dynamic input in OS command,"Description
+Incorporating unsanitized dynamic input directly into operating system commands poses a significant security risk. This practice could give attackers the opportunity to execute harmful commands on your system.
 Remediations
-- **Do** sanitize all dynamic data and function arguments before using them in file system operations. This step is crucial to prevent unauthorized access.
-- **Do** use a combination of hard-coded string literals and control logic, instead of directly passing dynamic data or function arguments to file system functions. This ensures safety.
+- **Do** use static, hardcoded values in command strings - wherever possible - to avoid relying on dynamic data.
   javascript
-  function write(filename) {
-    switch(filename) {
-      case ""hello.txt"":
-        fs.writeCreateFile(""hello.txt"");
-        break;
-      // Add more cases as necessary
-    }
-  }
+  let filePattern = ""*.js"";
+  cp.exec(cp ${filePattern} destinationFolder, (error, stdout, stderr) => {});
   
+- **Do** sanitize any dynamic input used in OS commands to ensure it does not contain malicious code. This can be achieved by validating and escaping the input.
 References
-- OWASP path traversal",https://docs.bearer.com/reference/rules/javascript_lang_non_literal_fs_filename
-OUT095,EX056,javascript,cmd-injection,codeql,js/prototype-pollution-utility,warning,21,13,Properties are copied from [source](1) to [target](2) without guarding against prototype pollution.,Functions recursively assigning properties on objects may be the cause of accidental modification of a built-in prototype object.,
-OUT096,EX057,javascript,cmd-injection,codeql,js/prototype-polluting-assignment,warning,52,19,This assignment may alter Object.prototype if a malicious '__proto__' string is injected from [user controlled input](1).,"Modifying an object obtained via a user-controlled property name may lead to accidental mutation of the built-in Object prototype, and possibly escalate to remote code execution or cross-site scripting.",
-OUT097,EX058,javascript,cmd-injection,codeql,js/prototype-polluting-assignment,warning,71,5,"This assignment may alter Object.prototype if a malicious '__proto__' string is injected from [user controlled input](1).
-This assignment may alter Object.prototype if a malicious '__proto__' string is injected from [user controlled input](2).","Modifying an object obtained via a user-controlled property name may lead to accidental mutation of the built-in Object prototype, and possibly escalate to remote code execution or cross-site scripting.",
-OUT098,EX059,javascript,cmd-injection,bearer,javascript_lang_os_command_injection,critical,39,,Unsanitized user input in OS command,"Description
+- OWASP command injection explained",https://docs.bearer.com/reference/rules/javascript_lang_os_command_injection
+OUT095,EX056,javascript,cmd-injection,bearer,javascript_lang_os_command_injection,critical,78,,Unsanitized user input in OS command,"Description
 Executing operating system commands with unsanitized user input can lead to command injection vulnerabilities. This occurs when attackers manipulate the input to execute unauthorized commands, potentially gaining control over the system.
 Remediations
 - **Do not** directly use user input in OS command execution. This can open up the system to command injection attacks.
@@ -530,6 +601,26 @@ Remediations
 - **Do** validate and sanitize all user input used in OS commands. Ensure that the input does not contain malicious characters or command sequences.
 References
 - OWASP command injection explained",https://docs.bearer.com/reference/rules/javascript_lang_os_command_injection
-OUT099,EX059,javascript,cmd-injection,codeql,js/command-line-injection,error,39,7,This command line depends on a [user-provided value](1).,Using externally controlled strings in a command line may allow a malicious user to change the meaning of the command.,
-OUT100,EX060,javascript,cmd-injection,codeql,js/command-line-injection,error,25,26,This command line depends on a [user-provided value](1).,Using externally controlled strings in a command line may allow a malicious user to change the meaning of the command.,
-OUT101,EX060,javascript,cmd-injection,semgrep,javascript.lang.security.detect-child-process.detect-child-process,ERROR,25,26,"Detected calls to child_process from a function argument `command`. This could lead to a command injection if the input is user controllable. Try to avoid calls to child_process, and if it is needed ensure user input is correctly sanitized or sandboxed.",,https://cheatsheetseries.owasp.org/cheatsheets/Nodejs_Security_Cheat_Sheet.html#do-not-use-dangerous-functions
+OUT096,EX056,javascript,cmd-injection,codeql,js/command-line-injection,error,78,10,This command line depends on a [user-provided value](1).,Using externally controlled strings in a command line may allow a malicious user to change the meaning of the command.,
+OUT097,EX056,javascript,cmd-injection,semgrep,javascript.lang.security.detect-child-process.detect-child-process,ERROR,78,10,"Detected calls to child_process from a function argument `req`. This could lead to a command injection if the input is user controllable. Try to avoid calls to child_process, and if it is needed ensure user input is correctly sanitized or sandboxed.",,https://cheatsheetseries.owasp.org/cheatsheets/Nodejs_Security_Cheat_Sheet.html#do-not-use-dangerous-functions
+OUT098,EX057,javascript,cmd-injection,codeql,js/command-line-injection,error,272,31,This command line depends on a [user-provided value](1).,Using externally controlled strings in a command line may allow a malicious user to change the meaning of the command.,
+OUT099,EX057,javascript,cmd-injection,semgrep,javascript.lang.security.detect-child-process.detect-child-process,ERROR,272,31,"Detected calls to child_process from a function argument `input`. This could lead to a command injection if the input is user controllable. Try to avoid calls to child_process, and if it is needed ensure user input is correctly sanitized or sandboxed.",,https://cheatsheetseries.owasp.org/cheatsheets/Nodejs_Security_Cheat_Sheet.html#do-not-use-dangerous-functions
+OUT100,EX058,javascript,cmd-injection,codeql,js/command-line-injection,error,174,10,This command line depends on a [user-provided value](1).,Using externally controlled strings in a command line may allow a malicious user to change the meaning of the command.,
+OUT101,EX059,javascript,cmd-injection,bearer,javascript_lang_os_command_injection,critical,39,,Unsanitized user input in OS command,"Description
+Executing operating system commands with unsanitized user input can lead to command injection vulnerabilities. This occurs when attackers manipulate the input to execute unauthorized commands, potentially gaining control over the system.
+Remediations
+- **Do not** directly use user input in OS command execution. This can open up the system to command injection attacks.
+- **Do** use static or predefined values for command parameters when possible. This reduces the risk of injection and ensures that the command operates within expected parameters.
+  javascript
+  let filePattern = ""*.js""
+  if (req.params.graphql) {
+    filePattern = ""*.gql""
+  }
+  cp.exec(cp ${filePattern} foo, (error, stdout, stderr) => {});
+  
+- **Do** validate and sanitize all user input used in OS commands. Ensure that the input does not contain malicious characters or command sequences.
+References
+- OWASP command injection explained",https://docs.bearer.com/reference/rules/javascript_lang_os_command_injection
+OUT102,EX059,javascript,cmd-injection,codeql,js/command-line-injection,error,39,7,This command line depends on a [user-provided value](1).,Using externally controlled strings in a command line may allow a malicious user to change the meaning of the command.,
+OUT103,EX060,javascript,cmd-injection,codeql,js/command-line-injection,error,25,26,This command line depends on a [user-provided value](1).,Using externally controlled strings in a command line may allow a malicious user to change the meaning of the command.,
+OUT104,EX060,javascript,cmd-injection,semgrep,javascript.lang.security.detect-child-process.detect-child-process,ERROR,25,26,"Detected calls to child_process from a function argument `command`. This could lead to a command injection if the input is user controllable. Try to avoid calls to child_process, and if it is needed ensure user input is correctly sanitized or sandboxed.",,https://cheatsheetseries.owasp.org/cheatsheets/Nodejs_Security_Cheat_Sheet.html#do-not-use-dangerous-functions

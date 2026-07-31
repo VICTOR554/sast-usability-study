@@ -41,7 +41,12 @@ DATASET = ROOT / "dataset"
 SEED = 20260731
 PER_CELL = 5
 MAX_PER_FILE = 2
-MAX_LINES = 250
+# The survey shows a window around the flagged line, not the whole file, so
+# this is a loose guard against files too large to make sense of rather than
+# a display limit. At 250 the JavaScript command injection cell could not be
+# filled, and the limit was excluding the only file there that all three
+# tools flagged.
+MAX_LINES = 550
 
 LANGS = ["java", "python", "javascript"]
 VULNS = ["sqli", "xss", "path-traversal", "cmd-injection"]
@@ -155,11 +160,22 @@ def main():
 
     rows, n, short, no_three = [], 0, [], []
     per_file, per_source = defaultdict(int), defaultdict(int)
+
+    # Tightest cells first. A file can only supply MAX_PER_FILE examples in
+    # total, so a cell filled early can use up a file a later cell needed.
+    # JavaScript command injection has five files and came out with three,
+    # because two had already been spent on other JavaScript cells.
+    cells = sorted(((lang, vt) for lang in LANGS for vt in VULNS),
+                   key=lambda c: len(pool[c]))
+    picks = {}
+    for cell in cells:
+        picks[cell] = pick_cell(pool[cell], grid[cell], rng, paths,
+                                per_file, per_source)
+
     for lang in LANGS:
         for vt in VULNS:
             tool = grid[(lang, vt)]
-            picked = pick_cell(pool[(lang, vt)], tool, rng, paths,
-                               per_file, per_source)
+            picked = picks[(lang, vt)]
             with_tool = sum(1 for p in picked if tool in p["tools"])
             all_three = sum(1 for p in picked if len(p["tools"]) == 3)
             if len(picked) < PER_CELL or with_tool < 2:

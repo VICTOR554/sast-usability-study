@@ -62,6 +62,9 @@ RULE_OVERRIDES = {
     "tainted-sql-string": ("sqli", "Semgrep tags CWE-915/704, rule detects SQL injection"),
     "subprocess-injection": ("cmd-injection", "shell command built from user input"),
     "subprocess-shell-true": ("cmd-injection", "shell=True with dynamic argument"),
+    "shell-command-constructed-from-input":
+        ("cmd-injection", "tagged for path traversal as well, but the rule is "
+                          "about building a shell command from user input"),
 }
 
 VULN_TYPES = ["sqli", "xss", "path-traversal", "cmd-injection"]
@@ -95,13 +98,19 @@ def cwe_from_semgrep(result):
 
 def classify(rule_id, cwes):
     """Works out which vulnerability type a finding belongs to, and whether
-    that came from the CWE tag or from an override."""
+    that came from the CWE tag or from an override.
+
+    A rule pointing at more than one of the four types is left unclassified.
+    CodeQL tags js/prototype-polluting-assignment with CWE-78, 79, 94, 400,
+    471 and 915, being everything prototype pollution could lead to. Taking
+    the first match filed it as command injection, and it reached the survey
+    before anyone read the warning."""
     for frag, (vt, _reason) in RULE_OVERRIDES.items():
         if frag in (rule_id or ""):
             return vt, "override"
-    for c in cwes:
-        if c in CWE_MAP:
-            return CWE_MAP[c], "cwe"
+    hits = {CWE_MAP[c] for c in cwes if c in CWE_MAP}
+    if len(hits) == 1:
+        return hits.pop(), "cwe"
     return None, None
 
 
