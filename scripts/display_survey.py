@@ -12,8 +12,8 @@ warning pointing at line 48 lands on the row marked 48. Specificity is
 scored on whether the output identifies the exact line, so those have to
 agree.
 
-Nothing identifies which tool produced a warning. People hold opinions about
-these tools and a visible name invites rating the brand.
+Nothing identifies which tool produced a warning. People can hold opinions about
+these tools and a visible name can bring bias.
 
     python3 scripts/display_survey.py
     python3 scripts/display_survey.py --window 20
@@ -30,26 +30,40 @@ ROOT = Path(__file__).resolve().parent.parent
 SURVEY = ROOT / "survey"
 WINDOW = 15
 
-# Comments that name the vulnerability. Juliet and DjanGoat both annotate
-# their own flaws; a participant reading these is no longer judging the
-# warning.
+# Comments that name the vulnerability. Juliet writes POTENTIAL FLAW,
+# DjanGoat writes "intended vulnerability", and Juice Shop tags its training
+# code with vuln-code-snippet markers - vuln-line sits on the vulnerable
+# line itself, which is as complete a give away as it gets.
 GIVEAWAY = re.compile(
     r"(POTENTIAL FLAW|FLAW:|BAD SOURCE|BAD SINK|intended vulnerability"
-    r"|vulnerability for|/\* *BAD *\*/|# *BAD\b|INCIDENTAL:|FIX:)",
+    r"|vulnerability for|/\* *BAD *\*/|# *BAD\b|INCIDENTAL:|FIX:"
+    r"|vuln-code-snippet)",
     re.I)
+
+# A comment sitting on its own line, as opposed to trailing real code.
+COMMENT_ONLY = re.compile(r"^\s*(//|#|/\*|\*)")
+# A trailing comment, so the code before it can be kept.
+TRAILING = re.compile(r"\s*(//|#).*$")
 
 
 def strip_giveaways(lines, start):
-    """Blanks out comments that name the vulnerability, keeping the line so
-    numbering does not shift. Returns the lines and what was taken out."""
-    removed = []
-    out = []
+    """Takes out comments that name the vulnerability.
+
+    A comment on its own line becomes blank, so the line count and every
+    line number below it stay the same. A comment trailing real code has
+    only the comment removed - Juice Shop puts its vuln-line marker at the
+    end of the vulnerable line itself, and blanking that line would delete
+    the very code the warning is about."""
+    removed, out = [], []
     for i, text in enumerate(lines):
-        if GIVEAWAY.search(text):
-            removed.append((start + i, text.strip()))
+        if not GIVEAWAY.search(text):
+            out.append(text)
+            continue
+        removed.append((start + i, text.strip()))
+        if COMMENT_ONLY.match(text):
             out.append("")
         else:
-            out.append(text)
+            out.append(TRAILING.sub("", text).rstrip())
     return out, removed
 
 
