@@ -1,5 +1,5 @@
 # Third-party source corpora.
-# Not vendored: exact versions are pinned in dataset/sources.csv
+# Not vendored: exact versions are pinned in sources.csv
 sources/*
 !sources/.gitkeep
 

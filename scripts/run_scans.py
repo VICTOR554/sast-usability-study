@@ -32,7 +32,7 @@ SOURCES_CSV = ROOT / "sources.csv"
 RUNS = ROOT / "runs"
 CODEQL_DBS = ROOT / "codeql-databases"
 
-# Bearer is not on PATH by default; adjust if you install it elsewhere.
+# Bearer's installer leaves it off PATH, so BEARER_BIN overrides the location.
 BEARER = os.environ.get("BEARER_BIN", "bearer")
 
 # Extensions that count as scannable source, per language.
@@ -62,7 +62,7 @@ SKIP_TEST_DIRS = {"test", "tests", "__tests__", "spec", "e2e"}
 
 def is_test_file(path: Path) -> bool:
     """True if this is a test file. The tools skip these anyway, and a test
-    file is not something you would show a developer as an example."""
+    file makes a poor example to put in front of a developer."""
     if set(path.parts) & SKIP_TEST_DIRS:
         return True
     name = path.name
@@ -107,7 +107,7 @@ def load_sources():
 
 
 def source_files(root: Path, language: str):
-    """Every file worth scanning, ignoring vendored and build folders."""
+    """Every file worth scanning, ignoring third-party and build folders."""
     exts = EXTS[language]
     out = []
     for dirpath, dirnames, filenames in os.walk(root):
@@ -158,8 +158,8 @@ def scan_semgrep(staged_dir: Path, out: Path):
 
 def bearer_file_count(output: str):
     """Reads the Files column from Bearer's summary table. The JSON report
-    only lists files that had findings, so without this you cannot tell a
-    clean file from one Bearer never opened."""
+    only lists files that had findings, so without this count a clean file
+    looks the same as one Bearer never opened."""
     total = None
     for line in output.replace("\r", "\n").splitlines():
         parts = line.split()

@@ -6,7 +6,7 @@ example is one vulnerable code location, not a whole file, so a file with
 three findings can supply more than one.
 
 Picking is random from the files that pass the rules below, using a fixed
-seed so the same set comes back every time. Choosing by hand would invite
+seed so the same set comes back every time. Choosing by hand would raise
 the question of whether the clearest examples were kept and the awkward
 ones dropped.
 

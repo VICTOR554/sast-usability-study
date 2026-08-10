@@ -142,7 +142,7 @@ def codeql_scanned(project):
     like CodeQL missed it. Candidates are limited to what all three read.
 
     Missing output stops the run rather than returning nothing. Skipping the
-    check silently gave a plausible but wrong matrix once already."""
+    check silently gave a wrong matrix that looked right once already."""
     for p in (RUNS / "codeql" / f"{project}.sarif",
               RUNS / "codeql" / f"{project}.sarif.gz"):
         if p.exists():

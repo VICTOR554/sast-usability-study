@@ -7,7 +7,7 @@ flagged by the tool that cell is assigned in survey_grid.csv, since that is
 the warning participants will see.
 
 Which of the pair goes to which version is decided at random with a fixed
-seed. Choosing by hand would invite the question of whether the clearer
+seed. Choosing by hand would raise the question of whether the clearer
 examples were steered into validation, where the agents are judged.
 
 The calibration twelve are used to tune the agent prompts and are then
