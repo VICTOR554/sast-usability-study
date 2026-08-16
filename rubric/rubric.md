@@ -97,19 +97,19 @@ well; the code itself is not being assessed, and neither is whether the
 warning is correct.
 
 <rubric>
-{the five scales above, verbatim}
+[[RUBRIC]]
 </rubric>
 
 <code_snippet>
-{snippet, with real line numbers}
+[[CODE]]
 </code_snippet>
 
 <sast_output>
-Severity: {severity}
-Rule: {rule_id}
-Location: {location}
-Message: {message}
-Guidance: {guidance}
+Severity: [[SEVERITY]]
+Rule: [[RULE]]
+Location: [[LOCATION]]
+Message: [[MESSAGE]]
+Guidance: [[GUIDANCE]]
 </sast_output>
 
 For each of the five scales, first say in one sentence what in the output
