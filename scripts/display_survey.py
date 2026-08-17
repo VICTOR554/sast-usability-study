@@ -32,8 +32,8 @@ WINDOW = 15
 
 # Comments that name the vulnerability. Juliet writes POTENTIAL FLAW,
 # DjanGoat writes "intended vulnerability", and Juice Shop tags its training
-# code with vuln-code-snippet markers - vuln-line sits on the vulnerable
-# line itself, which is as complete a give away as it gets.
+# code with vuln-code-snippet markers. One of those markers, vuln-line, sits
+# on the vulnerable line itself. That is as complete a give away as it gets.
 GIVEAWAY = re.compile(
     r"(POTENTIAL FLAW|FLAW:|BAD SOURCE|BAD SINK|intended vulnerability"
     r"|vulnerability for|/\* *BAD *\*/|# *BAD\b|INCIDENTAL:|FIX:"
@@ -51,9 +51,9 @@ def strip_giveaways(lines, start):
 
     A comment on its own line becomes blank, so the line count and every
     line number below it stay the same. A comment trailing real code has
-    only the comment removed - Juice Shop puts its vuln-line marker at the
-    end of the vulnerable line itself, and blanking that line would delete
-    the very code the warning is about."""
+    only the comment removed. Juice Shop puts its vuln-line marker at the
+    end of the vulnerable line itself, so blanking that whole line would
+    delete the very code the warning is about."""
     removed, out = [], []
     for i, text in enumerate(lines):
         if not GIVEAWAY.search(text):
@@ -71,7 +71,7 @@ def check_copy(row, paths):
     """The copy in dataset/ has to match the file the tools read.
 
     If it does not, every line number is wrong and the survey highlights the
-    wrong code. This happened once: a stale copy differed from its source by
+    wrong code. This happened once. A stale copy differed from its source by
     two lines, so the flagged line pointed at a return statement instead of
     the query that caused the warning."""
     proj, rel = row["source_path"].split("/", 1)
@@ -111,8 +111,8 @@ S_WTH = ("text-align:left;vertical-align:top;padding:4px 12px 4px 0;"
          "width:96px;color:#555;font-weight:600")
 S_WTD = "padding:4px 0;vertical-align:top;white-space:pre-wrap"
 # Headings so a participant can see where the code stops and the tool's
-# words begin. Neutral wording: naming the tool or the vulnerability type
-# would give away more than the warning does.
+# words begin. The wording is kept neutral. Naming the tool or the
+# vulnerability type would give away more than the warning does.
 S_HEAD = ("font-family:-apple-system,Segoe UI,sans-serif;font-size:13px;"
           "font-weight:700;letter-spacing:.08em;text-transform:uppercase;"
           "color:#000;margin:0 0 8px")

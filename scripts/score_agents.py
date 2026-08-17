@@ -68,18 +68,24 @@ def load_env():
 # stores the version the API reports back. This means a provider moving to a
 # new version underneath the script will still show up in the data.
 #
-# Temperature is set to 0 where the provider still accepts it, so that the
-# repeat run measures the model's own variation rather than random sampling.
-# Some models no longer take the parameter at all and are sent without it.
-# Those models run at whatever default the provider uses, which is a real
-# limitation on the consistency part of RQ1 and is recorded as one.
+# All three models run at temperature 1. Gemini is set to 1 here. ChatGPT
+# permits no other value, which its API says when sent a 0: "Only the default
+# (1) value is supported." Claude shows a temperature of 1 in the Anthropic
+# Workbench and no longer accepts the parameter over the API, so it is sent
+# without one.
+#
+# Setting all three to 0 was the original plan and is not possible. That
+# matters less than it first appeared, because temperature 0 never guaranteed
+# identical output on any of these models. The repeat run measures the
+# variation that remains, and RQ1 reports it rather than treating it as a
+# fault in the method.
 MODELS = {
     "claude": {"provider": "anthropic", "model": "claude-opus-5",
                "key": "ANTHROPIC_API_KEY", "temperature": None},
     "chatgpt": {"provider": "openai", "model": "gpt-5.5-2026-04-23",
-                "key": "OPENAI_API_KEY", "temperature": 0},
+                "key": "OPENAI_API_KEY", "temperature": None},
     "gemini": {"provider": "google", "model": "gemini-3.1-pro-preview",
-               "key": "GOOGLE_API_KEY", "temperature": 0},
+               "key": "GOOGLE_API_KEY", "temperature": 1},
 }
 
 SCALES = ["clarity", "severity_justification", "specificity",

@@ -47,8 +47,8 @@ ROOT = Path(__file__).resolve().parent.parent
 RUNS = ROOT / "runs"
 SOURCES_CSV = ROOT / "sources.csv"
 
-# Variants are grouped: the CWE-79 family counts as XSS, relative and
-# absolute path traversal count as one.
+# Variants are grouped together. The CWE-79 family counts as XSS, and
+# relative and absolute path traversal count as one type.
 CWE_MAP = {
     "89": "sqli",
     "79": "xss", "80": "xss", "81": "xss", "83": "xss", "116": "xss",

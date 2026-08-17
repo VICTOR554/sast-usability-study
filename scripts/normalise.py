@@ -41,7 +41,7 @@ FIELDS = ["output_id", "example_id", "language", "vuln_type", "tool",
 
 def strip_markdown(text):
     """Bearer writes markdown headings and links. The words are kept as the
-    tool wrote them; only the formatting marks come out."""
+    tool wrote them. Only the formatting marks come out."""
     if not text:
         return ""
     t = re.sub(r"^#+\s*", "", text, flags=re.M)

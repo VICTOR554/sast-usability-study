@@ -55,7 +55,7 @@ NATIVE_EXTS = {
 SKIP_DIRS = {"node_modules", ".git", "dist", "build", "target", "__pycache__",
              "venv", ".venv", "vendor"}
 
-# Test folders. "testcases" is not in this list on purpose - Juliet keeps
+# Test folders. "testcases" is not in this list on purpose. Juliet keeps
 # every case under src/testcases/, so excluding it would empty the corpus.
 SKIP_TEST_DIRS = {"test", "tests", "__tests__", "spec", "e2e"}
 
@@ -287,7 +287,8 @@ def main():
                 else:
                     target, files = tmp, staged
                 # Counted against the files CodeQL reads, so templates do not
-                # throw it off. Printed only - see scan_codeql for why.
+                # throw it off. This is printed only. The reason is in
+                # scan_codeql.
                 expected = sum(1 for f in files if Path(f).suffix in NATIVE_EXTS[lang])
                 out, n, indexed = scan_codeql(target, RUNS / "codeql" / f"{sid}.sarif",
                                               lang, CODEQL_DBS / sid)
