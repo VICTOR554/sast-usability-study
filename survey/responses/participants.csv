@@ -1,0 +1,27 @@
+response_id,version,final_feedback,programs,languages_proficient,ability_java,ability_python,ability_javascript,used_sast_before,understood_study
+R_850OPE9kP69Qmdz,calibration,Nothing,1,3,3,4,2,1,1
+R_8QKROKCOj8cBn0N,calibration,None,1,2,3,3,3,1,1
+R_8dRqIFtwbjt9AqN,validation,thanks,1,3,2,4,3,1,1
+R_8U4q9IRLcA8DfV7,validation,no,1,2,3,3,4,1,1
+R_8OGGVkZoBIiOmmP,validation,it was not enough time to do this survey properly and with quality.,1,2,1,1,3,2,1
+R_2nSF3SlL7gDPVXz,validation,"Well overall, I thought the survey was easy to follow. Most of the SAST outputs were helpful, but some used technical terms or repeated information that made them harder to understand. I think adding more simple explanations or short code examples would make the guidance easier for people with basic programming knowledge.",1,1,2,1,2,1,2
+R_2H2cO2FGQ81RUM5,calibration,,1,2,3,4,4,1,1
+R_2MhUN41eLbBqnAX,validation,,1,2,3,2,3,2,1
+R_4ucTJHJNd9ZJHwt,calibration,,1,1,3,2,2,2,1
+R_2zUwdRcSmTd8bIH,calibration,It needed more time,1,3,2,4,2,1,1
+R_9eeI1BzVILqvcjK,validation,,1,2,4,4,4,1,1
+R_2nlAbBZeBZjGODz,calibration,,1,2,3,2,2,1,1
+R_9I6PA8OW5PdSXAV,validation,no,1,3,3,4,2,1,1
+R_2Q6q1H5ZwGUMb9G,calibration,No,1,3,4,4,3,1,1
+R_2qDabv3CMIZjn4a,calibration,,1,3,4,4,4,1,1
+R_8HtVWCWAFgcqQcC,validation,"1. Actionability varied significantly. Across the evaluated outputs, tools that provided concrete, inline code examples were far more actionable than tools that merely provided conceptual warnings.
+
+2. For complex queries (e.g., Python SQL injection), reporting every single user-controlled dependency (depends on user-provided value [1]...[10]) added unnecessary clutter without improving developer comprehension. You can try to consolidate data-flow traces into a clear source-to-sink path which will be much more effective.
+
+3. Tools generally provided accurate severity labels (error/high) but guidance often remained too broad or generic (e.g., advising against external strings in command execution without showing how to safely parameterize or allow-list arguments in Node.js spawn).
+
+Now relating to the survey structure and usability, the evaluation criteria (Clarity, Severity Justification, Specificity, Actionability, and Completeness) are well-chosen and directly capture the key dimensions of developer-centric security tooling. Side-by-side code snippet and report layouts also made it straightforward to assess line/column precision against the underlying vulnerability.  Wish you the very best in your research! ",1,2,4,4,4,1,1
+R_8CeHTeszsVbgYNP,validation,Thanks!,1,3,4,4,3,1,1
+R_2tpwiU3YuTN3PlD,validation,"Maybe a little bit more time would be better, but overall is very balanced.",1,3,2,3,2,2,1
+R_8xy3xHPW1OzJuHL,calibration,"I would have loved to see a wider range of vulnerabilities,especially ones which have made headlines in the recent past ,SQL injection was presented a couple of times.  ",1,3,2,4,4,1,1
+R_8PAOkdOnxfyCd9a,calibration,,1,1,3,3,3,1,1
