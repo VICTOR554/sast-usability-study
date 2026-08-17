@@ -43,3 +43,6 @@ codeql-databases/
 .vscode/
 .idea/
 *.swp
+
+# Raw Qualtrics csv export: carries IP, geolocation and Prolific IDs
+survey/responses/survey_response.csv
