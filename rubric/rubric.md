@@ -85,7 +85,7 @@ or unexplained?
 
 ## Agent prompt
 
-A draft. The rubric text is fixed, so the prompt loads the scale sections
+The rubric text is fixed, so the prompt loads the scale sections
 above rather than repeating them.
 
 ```

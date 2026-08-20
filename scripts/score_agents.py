@@ -1,14 +1,19 @@
 #!/usr/bin/env python3
-"""Score every warning with three models and write runs/agents/scores.csv.
+"""Score SAST warnings with three models and write the scores to a CSV.
 
-This script scores all 104 warnings with three models, twice each. The
-repeat run is done to answer the consistency part of RQ1. Agreement between
-the three models is one measure of consistency. Whether a single model gives
-the same answer twice on the same warning is another measure, and the repeat
-run is what provides it.
+The full run scores all 104 warnings with three models, twice each, and
+writes to runs/agents/scores.csv. The repeat run is done to answer the
+consistency part of RQ1. Agreement between the three models is one measure
+of consistency. Whether a single model gives the same answer twice on the
+same warning is another measure, and the repeat run is what provides it.
+
+A calibration round is the same thing on a smaller set. --role picks out the
+twelve outputs one half of the survey rated, and --out sends the scores to
+their own file. Each round keeps its own file so that scores from a prompt
+still being revised are never mixed with those from the frozen prompt.
 
 The agents are shown the same thing the participants were shown. The code
-snippet is built using the same window and the same give-away stripping as
+snippet is built using the same window and the same give away stripping as
 display_survey.py. Those two functions are imported from that file rather
 than copied into this one. If a copy was kept here, it would become out of
 date as soon as one file was edited and the other was not. The prompt and
@@ -20,7 +25,9 @@ Nothing is lost and no call is paid for twice.
 
     python3 scripts/score_agents.py --dry-run    # print one prompt, call nothing
     python3 scripts/score_agents.py --limit 3    # three warnings, to check it works
-    python3 scripts/score_agents.py              # the full run
+    python3 scripts/score_agents.py              # the full run, all 104 warnings
+
+    python3 scripts/score_agents.py --role calibration \\ --out runs/agents/calibration_1.csv      # one calibration round
 """
 
 import argparse
@@ -108,12 +115,27 @@ def load_rubric():
     return scales, block.group(1).strip()
 
 
-def load_rows():
-    """Reads every warning together with the example it belongs to."""
+def load_rows(role=None):
+    """Reads every warning together with the example it belongs to.
+
+    With a role, only the warnings participants actually saw for that half of
+    the survey are returned. Those are the twelve used to tune the prompt.
+    Without one, all 104 warnings are returned, which is what the frozen
+    prompt scores."""
     idx = {r["example_id"]: r
            for r in csv.DictReader(open(ROOT / "dataset_index.csv"))}
+    wanted = None
+    if role:
+        wanted = {r["output_id"] for r
+                  in csv.DictReader(open(ROOT / "survey" / "responses"
+                                         / "ratings.csv"))
+                  if r["version"] == role}
+        if not wanted:
+            raise SystemExit(f"no outputs found for role {role!r}")
     rows = []
     for w in csv.DictReader(open(ROOT / "normalised" / "outputs.csv")):
+        if wanted is not None and w["output_id"] not in wanted:
+            continue
         rows.append((w, idx[w["example_id"]]))
     return rows
 
@@ -265,14 +287,14 @@ def parse_reply(text):
     return d, None
 
 
-def done_already():
+def done_already(out):
     """Reads what is already in the CSV.
 
     A restarted run uses this so that work is not done a second time."""
-    if not OUT.exists():
+    if not out.exists():
         return set()
     return {(r["output_id"], r["model"], r["run"])
-            for r in csv.DictReader(open(OUT))}
+            for r in csv.DictReader(open(out))}
 
 
 def main():
@@ -286,11 +308,20 @@ def main():
                     help="passes per model")
     ap.add_argument("--window", type=int, default=WINDOW,
                     help="lines shown either side of the flagged line")
+    ap.add_argument("--role", choices=("calibration", "validation"),
+                    help="score only the twelve outputs from that half of "
+                         "the survey, for tuning the prompt")
+    # Each tuning round writes its own file. The frozen run writes the
+    # default. Sharing one file would make the frozen run skip any output a
+    # tuning round had already scored, leaving part of the results on a
+    # prompt that was still being changed.
+    ap.add_argument("--out", type=Path, default=OUT,
+                    help="where to write the scores")
     args = ap.parse_args()
 
     load_env()
     scales, template = load_rubric()
-    rows = load_rows()
+    rows = load_rows(args.role)
     if args.limit:
         rows = rows[:args.limit]
 
@@ -309,10 +340,10 @@ def main():
             raise SystemExit(f"{MODELS[name]['key']} is not set. Put it in "
                              f"{ENV.name} at the top of the repository.")
 
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    seen = done_already()
-    new = OUT.exists() and OUT.stat().st_size > 0
-    f = open(OUT, "a", newline="")
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    seen = done_already(args.out)
+    new = args.out.exists() and args.out.stat().st_size > 0
+    f = open(args.out, "a", newline="")
     writer = csv.DictWriter(f, fieldnames=FIELDS)
     if not new:
         writer.writeheader()
@@ -353,7 +384,7 @@ def main():
                 print(f"  [{n}/{total}] {warning['output_id']} {name} run {run}")
     f.close()
 
-    print(f"\nwrote to {OUT.relative_to(ROOT)}")
+    print(f"\nwrote to {args.out}")
     if skipped:
         print(f"  already scored, skipped: {skipped}")
     if failed:
