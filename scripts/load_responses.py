@@ -13,7 +13,7 @@ instead, and was confirmed against the block names in Qualtrics.
 
 Column names cannot be trusted on their own, because the export reuses them.
 Q4 is both a screening question and a rating on one of the blocks, and Q6 is
-both as well. Every column is therefore found by position, and the blocks
+both as well. Every column is found by position, and the blocks
 are found by the timing columns that Qualtrics writes around each one.
 
 Randomising the order the blocks were shown in does not affect any of this.
