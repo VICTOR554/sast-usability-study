@@ -18,7 +18,7 @@ RULE_OVERRIDES so every correction stays visible.
     python3 scripts/coverage.py                # matrix
     python3 scripts/coverage.py --candidates   # files per cell
     python3 scripts/coverage.py --unclassified # findings with no mapping
-"""  
+"""
 
 import argparse
 import csv

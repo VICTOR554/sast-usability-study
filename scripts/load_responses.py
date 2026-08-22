@@ -35,15 +35,15 @@ BLOCK_MAP = RESP / "block_map.csv"
 RATINGS = RESP / "ratings.csv"
 PARTICIPANTS = RESP / "participants.csv"
 
-SCALES = ["Clarity", "Severity Justification", "Specificity",
-          "Actionability", "Completeness"]
+DIMENSIONS = ["Clarity", "Severity Justification", "Specificity",
+              "Actionability", "Completeness"]
 # The column name the analysis uses for each scale, matching the agent
 # scores so the two tables join on the same names.
-SCALE_KEY = {"Clarity": "clarity",
-             "Severity Justification": "severity_justification",
-             "Specificity": "specificity",
-             "Actionability": "actionability",
-             "Completeness": "completeness"}
+DIMENSION_KEY = {"Clarity": "clarity",
+                 "Severity Justification": "severity_justification",
+                 "Specificity": "specificity",
+                 "Actionability": "actionability",
+                 "Completeness": "completeness"}
 
 # Screening questions, by position rather than by name.
 PERSON_COLS = {
@@ -73,8 +73,8 @@ def find_blocks(h1, h2):
             current = None
         if current is None:
             continue
-        if h2[i] in SCALES:
-            blocks[current].append((i, SCALE_KEY[h2[i]]))
+        if h2[i] in DIMENSIONS:
+            blocks[current].append((i, DIMENSION_KEY[h2[i]]))
         elif h2[i].startswith("Please explain"):
             blocks[current].append((i, "written_feedback"))
     return blocks
@@ -112,7 +112,7 @@ def check(rows, people, blocks):
         problems.append(f"{len(blocks)} blocks found, expected 24")
     bad = [r for r in rows
            if any(r[s] not in ("1", "2", "3", "4", "5")
-                  for s in SCALE_KEY.values())]
+                  for s in DIMENSION_KEY.values())]
     if bad:
         problems.append(f"{len(bad)} ratings are blank or outside 1 to 5")
     per_person = defaultdict(set)
