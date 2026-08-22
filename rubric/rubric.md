@@ -85,8 +85,12 @@ or unexplained?
 
 ## Agent prompt
 
-The rubric text is fixed, so the prompt loads the scale sections
-above rather than repeating them.
+Frozen on 20 August 2026, after one calibration round. That round compared
+the agents against the twelve calibration outputs and found no revision worth
+changing. Replaced on 22 August 2026 by rubric_2.md.
+
+The rubric text is fixed, so the prompt loads the scale sections above rather
+than repeating them.
 
 ```
 Scoring the usability of a single static analysis tool warning.

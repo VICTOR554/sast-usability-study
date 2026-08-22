@@ -2,7 +2,7 @@
 """Score SAST warnings with three models and write the scores to a CSV.
 
 The full run scores all 104 warnings with three models, twice each, and
-writes to runs/agents/scores.csv. The repeat run is done to answer the
+writes to runs/agents/scores_2.csv. The repeat run is done to answer the
 consistency part of RQ1. Agreement between the three models is one measure
 of consistency. Whether a single model gives the same answer twice on the
 same warning is another measure, and the repeat run is what provides it.
@@ -17,7 +17,11 @@ snippet is built using the same window and the same give away stripping as
 display_survey.py. Those two functions are imported from that file rather
 than copied into this one. If a copy was kept here, it would become out of
 date as soon as one file was edited and the other was not. The prompt and
-the five scales are read from rubric/rubric.md for the same reason.
+the five scales are read from a rubric file for the same reason. --rubric
+chooses which one. rubric/rubric.md holds the prompt frozen before the
+survey ran, and rubric/rubric_2.md adds the task information participants
+were given on the instructions page. The second is what the reported
+evaluation uses.
 
 Each row is written as soon as it arrives, and any work already in the file
 is skipped. This means a run that stops part way can be started again.
@@ -25,9 +29,24 @@ Nothing is lost and no call is paid for twice.
 
     python3 scripts/score_agents.py --dry-run    # print one prompt, call nothing
     python3 scripts/score_agents.py --limit 3    # three warnings, to check it works
-    python3 scripts/score_agents.py              # the full run, all 104 warnings
 
-    python3 scripts/score_agents.py --role calibration \\ --out runs/agents/calibration_1.csv      # one calibration round
+The frozen prompt, which produced calibration_1.csv and scores_1.csv:
+
+    python3 scripts/score_agents.py --role calibration \\
+        --out runs/agents/calibration_1.csv
+    python3 scripts/score_agents.py --out runs/agents/scores_1.csv
+
+The corrected prompt, which produced calibration_2.csv and scores_2.csv and
+is what the results report:
+
+    python3 scripts/score_agents.py --rubric rubric/rubric_2.md \\
+        --role calibration --out runs/agents/calibration_2.csv --runs 2
+    python3 scripts/score_agents.py --rubric rubric/rubric_2.md \\
+        --out runs/agents/scores_2.csv --runs 2
+
+A run that stops on a provider limit is finished by repeating its command.
+--models takes a comma separated list, so the providers that still have
+quota can be run on their own while another waits.
 """
 
 import argparse
@@ -46,10 +65,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from display_survey import window, strip_giveaways, WINDOW
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT = ROOT / "runs" / "agents" / "scores.csv"
+OUT = ROOT / "runs" / "agents" / "scores_2.csv"
 RUBRIC = ROOT / "rubric" / "rubric.md"
 ENV = ROOT / ".env"
 RUNS_PER_MODEL = 2
+# Marks a reply the model declined to give, so it is reported as a refusal
+# rather than as a reply that could not be read.
+REFUSED = "__refused__"
 
 
 def load_env():
@@ -95,18 +117,22 @@ MODELS = {
                "key": "GOOGLE_API_KEY", "temperature": 1},
 }
 
-SCALES = ["clarity", "severity_justification", "specificity",
-          "actionability", "completeness"]
+DIMENSIONS = ["clarity", "severity_justification", "specificity",
+              "actionability", "completeness"]
 
 FIELDS = (["output_id", "example_id", "language", "vuln_type", "tool",
            "model", "model_version", "run"]
-          + [f"{s}_{p}" for s in SCALES for p in ("score", "why")]
+          + [f"{s}_{p}" for s in DIMENSIONS for p in ("score", "why")]
           + ["written_feedback", "scored_at"])
 
 
-def load_rubric():
-    """Reads the five scales and the prompt template from rubric/rubric.md."""
-    text = RUBRIC.read_text()
+def load_rubric(path=None):
+    """Reads the five scales and the prompt template from a rubric file.
+
+    Defaults to the frozen rubric. A different file can be given so that an
+    alternative prompt can be tried without editing the frozen one, which is
+    how a path changed for one run and never changed back."""
+    text = (path or RUBRIC).read_text()
     start = text.index("## Clarity")
     scales = text[start:text.index("## Written Feedback")].strip()
     block = re.search(r"## Agent prompt.*?```\n(.*?)```", text, re.S)
@@ -208,11 +234,16 @@ def post(url, body, headers, timeout=120):
                 time.sleep(wait)
                 continue
             raise SystemExit(f"{e.code} from {safe(url)}\n{detail}")
-        except urllib.error.URLError as e:
+        # A read timeout arrives as a plain TimeoutError rather than a
+        # URLError, so catching only URLError lets it through and ends the
+        # run. One did, a third of the way into the full evaluation.
+        except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
             if attempt < 5:
-                time.sleep(2 ** attempt)
+                wait = 2 ** attempt
+                print(f"    {type(e).__name__}, waiting {wait}s")
+                time.sleep(wait)
                 continue
-            raise SystemExit(f"cannot reach {url}: {e}")
+            raise SystemExit(f"cannot reach {safe(url)}: {e}")
     raise SystemExit(f"gave up on {url}")
 
 
@@ -226,6 +257,13 @@ def call_anthropic(cfg, prompt):
              {"x-api-key": os.environ[cfg["key"]],
               "anthropic-version": "2023-06-01",
               "content-type": "application/json"})
+    # A refusal comes back as a successful response with no content at all,
+    # so without this check it looks like a reply that could not be parsed.
+    # It is a decision by the model rather than a fault, and no amount of
+    # retrying will change it.
+    if d.get("stop_reason") == "refusal":
+        why = (d.get("stop_details") or {}).get("category") or "unstated"
+        return f"{REFUSED} {why}", d.get("model", cfg["model"])
     text = "".join(b.get("text", "") for b in d["content"]
                    if b.get("type") == "text")
     return text, d.get("model", cfg["model"])
@@ -269,6 +307,8 @@ def parse_reply(text):
     following it is ignored. Replies vary in shape between calls, so the
     parser cannot assume the model returned nothing else."""
     t = text.strip()
+    if t.startswith(REFUSED):
+        return None, f"the model refused this warning ({t[len(REFUSED):].strip()})"
     if t.startswith("```"):
         t = re.sub(r"^```(?:json)?\s*", "", t)
         t = re.sub(r"\s*```$", "", t).strip()
@@ -279,7 +319,7 @@ def parse_reply(text):
         d, _end = json.JSONDecoder().raw_decode(t[start:])
     except json.JSONDecodeError as e:
         return None, f"bad JSON: {e}"
-    for s in SCALES:
+    for s in DIMENSIONS:
         if s not in d or "score" not in d.get(s, {}):
             return None, f"missing {s}"
         if d[s]["score"] not in (1, 2, 3, 4, 5):
@@ -317,10 +357,12 @@ def main():
     # prompt that was still being changed.
     ap.add_argument("--out", type=Path, default=OUT,
                     help="where to write the scores")
+    ap.add_argument("--rubric", type=Path,
+                    help="a rubric file other than the frozen one")
     args = ap.parse_args()
 
     load_env()
-    scales, template = load_rubric()
+    scales, template = load_rubric(args.rubric)
     rows = load_rows(args.role)
     if args.limit:
         rows = rows[:args.limit]
@@ -376,7 +418,7 @@ def main():
                        "model": name, "model_version": version, "run": run,
                        "written_feedback": parsed.get("written_feedback", ""),
                        "scored_at": datetime.now(timezone.utc).isoformat()}
-                for s in SCALES:
+                for s in DIMENSIONS:
                     row[f"{s}_score"] = parsed[s]["score"]
                     row[f"{s}_why"] = parsed[s].get("why", "")
                 writer.writerow(row)
