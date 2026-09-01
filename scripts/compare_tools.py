@@ -98,9 +98,16 @@ def frequencies(rows, about):
     """How often each score from 1 to 5 occurs, overall and per tool.
 
     A mean of 3 can come from every warning scoring 3 or from half scoring 1
-    and half scoring 5, and those are different findings."""
+    and half scoring 5, and those are different findings.
+
+    A median can land on a half when a warning was scored by an even number
+    of models, which happens where one model refused. Those values match no
+    column, so they are counted separately and named underneath rather than
+    being dropped. A row that quietly totals one less than the others is the
+    kind of thing nobody notices until someone adds up the table."""
     print(f"\n{'dimension':24s} {'tool':9s} " + " ".join(f"{v:>5d}" for v in range(1, 6)))
     print("-" * 68)
+    uncounted = []
     for d in DIMENSIONS:
         for tool in ["all"] + TOOLS:
             vals = [dims[d] for o, dims in rows.items()
@@ -108,7 +115,13 @@ def frequencies(rows, about):
             counts = [sum(1 for v in vals if v == n) for n in range(1, 6)]
             name = d if tool == "all" else ""
             print(f"{name:24s} {tool:9s} " + " ".join(f"{c:5d}" for c in counts))
+            if tool == "all":
+                uncounted += [(o, d, dims[d]) for o, dims in rows.items()
+                              if dims[d] not in range(1, 6)]
         print()
+    for output_id, d, value in uncounted:
+        print(f"not counted above: {output_id} {d} {value}, "
+              f"median of an even number of models")
 
 
 def matched(rows, about):

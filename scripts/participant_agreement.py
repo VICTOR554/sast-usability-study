@@ -26,8 +26,7 @@ since every one of them carries a severity label and a code location.
 Whenever compare_scores.py is run with --without, this is run the same way,
 so the agents and the baseline are measured over the same people:
 
-    python3 scripts/participant_agreement.py --version validation \\
-        --without R_850OPE9kP69Qmdz
+    python3 scripts/participant_agreement.py --version validation --without R_850OPE9kP69Qmdz
 """
 
 import argparse
@@ -86,7 +85,13 @@ def leave_one_out(rows, scale):
     strict = sum(1 for d in diffs if abs(d) < 0.5) / len(diffs)
     loose = sum(1 for d in diffs if abs(d) <= 0.5) / len(diffs)
     within = sum(1 for d in diffs if abs(d) <= 1) / len(diffs)
-    return strict, loose, within, statistics.median([abs(d) for d in diffs])
+    gaps = [abs(d) for d in diffs]
+    # The gaps are returned as well as their median. The summary row takes one
+    # median over all five dimensions pooled. Averaging the five medians would
+    # print a number no single comparison can produce: the differences here are
+    # whole, so their median is whole, but the mean of five whole medians is
+    # not.
+    return strict, loose, within, statistics.median(gaps), gaps
 
 
 def main():
@@ -129,17 +134,21 @@ def main():
     print(f"{'dimension':24s} {'exact: strict':>14s} {'loose':>7s} "
           f"{'within 1':>10s} {'median diff':>12s}")
     print("-" * 68)
-    totals = []
+    totals, pooled = [], []
     for s in DIMENSIONS:
         got = leave_one_out(rows, s)
         totals.append(got)
+        pooled += got[4]
         print(f"{s:24s} {got[0]:13.0%} {got[1]:7.0%} {got[2]:10.0%} "
               f"{got[3]:12.1f}")
+    # Every dimension carries the same number of comparisons, so a mean of the
+    # five proportions equals the pooled proportion and the percentages are the
+    # same either way. The median is not, so it is taken over the pooled gaps.
     print(f"{'all five together':24s} "
           f"{statistics.mean(x[0] for x in totals):13.0%} "
           f"{statistics.mean(x[1] for x in totals):7.0%} "
           f"{statistics.mean(x[2] for x in totals):10.0%} "
-          f"{statistics.mean(x[3] for x in totals):12.1f}")
+          f"{statistics.median(pooled):12.1f}")
 
     # How the scale was used, reported per participant rather than in total.
     # A problem concentrated in one person means something different from the
@@ -161,7 +170,11 @@ def main():
           f"{'impossible':>11s} {'words':>6s}")
     print("-" * 70)
     ver = {r["response_id"]: r["version"] for r in rows}
-    for p in sorted(people, key=lambda p: (-flat[p], -impossible[p])):
+    # The response ID is the last part of the sort key. Without it the rows
+    # that tie, which is most of them, come out in set order and that changes
+    # between runs, so the same command printed a differently ordered table
+    # each time.
+    for p in sorted(people, key=lambda p: (-flat[p], -impossible[p], p)):
         print(f"{p:20s} {ver[p]:11s} {flat[p]:12d} of {rated:2d} "
               f"{impossible[p]:11d} "
               f"{statistics.mean(words[p]):6.0f}")

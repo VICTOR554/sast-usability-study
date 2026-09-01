@@ -25,24 +25,18 @@ A calibration round, under each prompt:
 
 The full runs, on each half separately:
 
-    python3 scripts/compare_scores.py runs/agents/scores_1.csv \\
-        --version calibration
-    python3 scripts/compare_scores.py runs/agents/scores_1.csv \\
-        --version validation
+    python3 scripts/compare_scores.py runs/agents/scores_1.csv --version calibration
+    python3 scripts/compare_scores.py runs/agents/scores_1.csv --version validation
         
-    python3 scripts/compare_scores.py runs/agents/scores_2.csv \\
-        --version calibration
-    python3 scripts/compare_scores.py runs/agents/scores_2.csv \\
-        --version validation
+    python3 scripts/compare_scores.py runs/agents/scores_2.csv --version calibration
+    python3 scripts/compare_scores.py runs/agents/scores_2.csv --version validation
 
 Every output rather than the summary, one participant left out, and one
 warning left out:
 
     python3 scripts/compare_scores.py runs/agents/scores_2.csv --outputs
-    python3 scripts/compare_scores.py runs/agents/scores_2.csv \\
-        --without R_850OPE9kP69Qmdz
-    python3 scripts/compare_scores.py runs/agents/scores_2.csv \\
-        --skip-output OUT063
+    python3 scripts/compare_scores.py runs/agents/scores_2.csv --without R_850OPE9kP69Qmdz
+    python3 scripts/compare_scores.py runs/agents/scores_2.csv --skip-output OUT063
 """
 
 import argparse
@@ -140,7 +134,12 @@ def agreement(people, agents, shared, dimension):
     strict = sum(1 for d in diffs if abs(d) < 0.5) / len(diffs)
     loose = sum(1 for d in diffs if abs(d) <= 0.5) / len(diffs)
     within = sum(1 for d in diffs if abs(d) <= 1) / len(diffs)
-    return strict, loose, within, statistics.median([abs(d) for d in diffs])
+    gaps = [abs(d) for d in diffs]
+    # The gaps are returned as well as their median, so the summary row can
+    # take one median over all five dimensions pooled rather than averaging
+    # the five per dimension medians. A mean of medians is not a median and
+    # prints values no comparison can produce.
+    return strict, loose, within, statistics.median(gaps), gaps
 
 
 def tools_by_output():
@@ -204,16 +203,21 @@ def main():
     print(f"\n{'dimension':24s} {'exact: strict':>14s} {'loose':>7s} "
           f"{'within 1':>10s} {'median diff':>12s}")
     print("-" * 68)
+    overall, pooled = [], []
     for s in DIMENSIONS:
-        strict, loose, within, typical = agreement(people, agents, shared, s)
-        print(f"{s:24s} {strict:13.0%} {loose:7.0%} {within:10.0%} "
-              f"{typical:12.1f}")
-    overall = [agreement(people, agents, shared, s) for s in DIMENSIONS]
+        got = agreement(people, agents, shared, s)
+        overall.append(got)
+        pooled += got[4]
+        print(f"{s:24s} {got[0]:13.0%} {got[1]:7.0%} {got[2]:10.0%} "
+              f"{got[3]:12.1f}")
+    # Every dimension carries the same number of comparisons, so a mean of the
+    # five proportions equals the pooled proportion. The median is taken over
+    # the pooled gaps instead, since a mean of five medians is neither.
     print(f"{'all five together':24s} "
           f"{statistics.mean(x[0] for x in overall):13.0%} "
           f"{statistics.mean(x[1] for x in overall):7.0%} "
           f"{statistics.mean(x[2] for x in overall):10.0%} "
-          f"{statistics.mean(x[3] for x in overall):12.1f}")
+          f"{statistics.median(pooled):12.1f}")
 
     # How often the two sides land far apart, which says more than the
     # overall medians. A scale can look level and still disagree on half the

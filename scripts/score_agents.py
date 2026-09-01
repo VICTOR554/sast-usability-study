@@ -32,17 +32,14 @@ Nothing is lost and no call is paid for twice.
 
 The frozen prompt, which produced calibration_1.csv and scores_1.csv:
 
-    python3 scripts/score_agents.py --role calibration \\
-        --out runs/agents/calibration_1.csv
+    python3 scripts/score_agents.py --role calibration --out runs/agents/calibration_1.csv
     python3 scripts/score_agents.py --out runs/agents/scores_1.csv
 
 The corrected prompt, which produced calibration_2.csv and scores_2.csv and
 is what the results report:
 
-    python3 scripts/score_agents.py --rubric rubric/rubric_2.md \\
-        --role calibration --out runs/agents/calibration_2.csv --runs 2
-    python3 scripts/score_agents.py --rubric rubric/rubric_2.md \\
-        --out runs/agents/scores_2.csv --runs 2
+    python3 scripts/score_agents.py --rubric rubric/rubric_2.md --role calibration --out runs/agents/calibration_2.csv --runs 2
+    python3 scripts/score_agents.py --rubric rubric/rubric_2.md --out runs/agents/scores_2.csv --runs 2
 
 A run that stops on a provider limit is finished by repeating its command.
 --models takes a comma separated list, so the providers that still have

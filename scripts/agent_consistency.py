@@ -101,6 +101,44 @@ def between_models(scores, models, run):
     return pairs, spreads
 
 
+def direction(scores, models, run, dimension=None):
+    """Which way a pair disagrees, not only how often.
+
+    between_models() reports how close two models are. It cannot say whether
+    one of them sits above the other, because a pair that disagrees evenly in
+    both directions and a pair that agrees almost always both produce a small
+    typical gap.
+
+    Differences are taken as first minus second, so a positive mean means the
+    first model scored higher. Counts are returned as well as the mean, since
+    a mean near zero can come from close agreement or from disagreement in
+    both directions cancelling out, and only the counts separate those."""
+    out = {}
+    for i, one in enumerate(models):
+        for other in models[i + 1:]:
+            diffs = []
+            for (_output, d), by_who in scores.items():
+                if dimension and d != dimension:
+                    continue
+                a, b = by_who.get((one, run)), by_who.get((other, run))
+                if a is not None and b is not None:
+                    diffs.append(a - b)
+            if not diffs:
+                continue
+            n = len(diffs)
+            out[(one, other)] = {
+                "n": n,
+                "higher": sum(1 for d in diffs if d > 0) / n,
+                "same": sum(1 for d in diffs if d == 0) / n,
+                "lower": sum(1 for d in diffs if d < 0) / n,
+                "mean": statistics.mean(diffs),
+                "sizes": [sum(1 for d in diffs if abs(d) == k) / n
+                          for k in (0, 1, 2)]
+                         + [sum(1 for d in diffs if abs(d) >= 3) / n],
+            }
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("scores", type=Path,
@@ -110,6 +148,8 @@ def main():
                     help="break the figures down by dimension")
     ap.add_argument("--run", type=int, default=PRIMARY_RUN,
                     help="which run to treat as the primary one")
+    ap.add_argument("--direction", action="store_true",
+                    help="which way each pair of models disagrees")
     args = ap.parse_args()
 
     scores, models, runs = read(args.scores)
@@ -158,6 +198,40 @@ def main():
         same, within, typical = measures(diffs)
         print(f"{one + ' and ' + other:26s} {same:6.0%} {within:9.0%} "
               f"{typical:12.1f}")
+
+    if args.direction:
+        # first minus second, so a positive mean means the first model scored
+        # higher. The counts sit beside the mean because a mean near zero can
+        # mean the pair agrees or that it disagrees both ways in equal measure.
+        rows = direction(scores, models, args.run)
+        print(f"\ndirection between models, on run {args.run}")
+        print(f"{'pair':26s} {'n':>5s} {'higher':>8s} {'same':>7s} "
+              f"{'lower':>7s} {'mean signed diff':>18s}")
+        print("-" * 74)
+        for (one, other), v in sorted(rows.items()):
+            print(f"{one + ' - ' + other:26s} {v['n']:5d} {v['higher']:7.0%} "
+                  f"{v['same']:6.0%} {v['lower']:6.0%} {v['mean']:18.2f}")
+
+        print(f"\ndirection by dimension")
+        print(f"{'pair':22s} {'dimension':24s} {'n':>4s} {'higher':>7s} "
+              f"{'same':>6s} {'lower':>6s} {'mean':>7s}")
+        print("-" * 80)
+        for (one, other) in sorted(rows):
+            for i, d in enumerate(DIMENSIONS):
+                v = direction(scores, models, args.run, d)[(one, other)]
+                name = f"{one} - {other}" if i == 0 else ""
+                print(f"{name:22s} {d:24s} {v['n']:4d} {v['higher']:6.0%} "
+                      f"{v['same']:5.0%} {v['lower']:5.0%} {v['mean']:7.2f}")
+            print()
+
+        print(f"size of the differences")
+        print(f"{'pair':26s} {'n':>5s} {'0':>7s} {'1':>7s} {'2':>7s} "
+              f"{'3 or more':>11s}")
+        print("-" * 68)
+        for (one, other), v in sorted(rows.items()):
+            z, a, b, c = v["sizes"]
+            print(f"{one + ' - ' + other:26s} {v['n']:5d} {z:7.0%} {a:7.0%} "
+                  f"{b:7.0%} {c:11.0%}")
 
     if spreads:
         wide = [key for key, gap in spreads if gap >= WIDE]
